@@ -1,0 +1,7 @@
+LoopMixer/builds/
+Mixer/builds/
+NoiseGen/builds/
+SamplePlayer/builds/
+WatermarkGen/builds/
+*.wav
+*.mp3
