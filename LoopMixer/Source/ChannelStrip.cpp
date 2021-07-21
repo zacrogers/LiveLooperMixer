@@ -72,7 +72,7 @@ void ChannelStrip::resized()
 }
 
 
-void ChannelStrip::changeState(State::Transport newState)
+void ChannelStrip::changeState(TransportState newState)
 {
 	if (state != newState)
 	{
@@ -80,19 +80,19 @@ void ChannelStrip::changeState(State::Transport newState)
 
 		switch (state)
 		{
-		case State::Transport::STOPPED:
+		case TransportState::STOPPED:
 
 			break;
 
-		case State::Transport::STARTING:
+		case TransportState::STARTING:
 
 			break;
 
-		case State::Transport::PLAYING:
+		case TransportState::PLAYING:
 
 			break;
 
-		case State::Transport::STOPPING:
+		case TransportState::STOPPING:
 
 			break;
 		}

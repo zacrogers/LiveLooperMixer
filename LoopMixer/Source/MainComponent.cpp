@@ -11,21 +11,15 @@
 //==============================================================================
 MainComponent::MainComponent()
 { 
-	formatManager.registerBasicFormats();
-	basePath = getExePath();
-
-	initDataVectors();
 	initGuiElements();
 
-
+	formatManager.registerBasicFormats();
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
 
-
+	basePath = getExePath();
 	autoLoadClip("lmdrum", 0);
 	autoLoadClip("lmbass", 1);
-
-	populatedTracks = 2; // REMEMER TO REMOVE THIS
 
 	mixer.addInputSource(&transportSource[0], true);
 
@@ -58,15 +52,9 @@ void MainComponent::volumeChanged(int channel)
 
 }
 
-void MainComponent::initDataVectors(void)
-{
-	for (std::size_t i = 0; i < NUM_CHANNELS; i++)
-	{
-		trackStates.push_back(State::Track::STOPPED);
-	}
-}
 
-void MainComponent::initGuiElements(void)
+
+void MainComponent::initGuiElements()
 {
 	strips[0].clipBtns[0].onClick = [this] { playBtnClicked(); };
 	strips[0].recBtn.onClick = [this] { recordClip(); };
@@ -107,13 +95,6 @@ void MainComponent::initGuiElements(void)
 	play2.setButtonText("Play2");
 	play2.onClick = [this] { playClip(1); };
 
-	addAndMakeVisible(&stop1);
-	stop1.setButtonText("Stop1");
-	stop1.onClick = [this] { stopClip(0); };
-
-	addAndMakeVisible(&stop2);
-	stop2.setButtonText("Stop2");
-	stop2.onClick = [this] { stopClip(1); };
 
 	setSize(600, 600);
 }
@@ -158,48 +139,29 @@ void MainComponent::resized()
 		//strips[chan].setBounds(0 + (chan * 60), 0, 40, getHeight());
 	}
 
-	std::uint16_t btnHeight = 40;
+	loadButton.setBounds(NUM_CHANNELS * 60, 50, 80, 40);
+	playButton.setBounds(NUM_CHANNELS * 60, 110, 80, 40);
+	stopButton.setBounds(NUM_CHANNELS * 60, 170, 80, 40);
 
-	loadButton.setBounds(NUM_CHANNELS * 60, btnHeight + 10, 80, btnHeight);
-	playButton.setBounds(NUM_CHANNELS * 60, (btnHeight * 2) + 10, 80, btnHeight);
-	stopButton.setBounds(NUM_CHANNELS * 60, (btnHeight * 3) + 10, 80, btnHeight);
-	play1.setBounds(NUM_CHANNELS * 60, (btnHeight * 4) + 10, 80, btnHeight);
-	play2.setBounds(NUM_CHANNELS * 60, (btnHeight * 5) + 10, 80, btnHeight);
-	stop1.setBounds(NUM_CHANNELS * 60, (btnHeight * 6) + 10, 80, btnHeight);
-	stop2.setBounds(NUM_CHANNELS * 60, (btnHeight * 7) + 10, 80, btnHeight);
-
-	loadButton2.setBounds(NUM_CHANNELS * 60, (btnHeight * 8) + 10, 80, 40);
+	loadButton2.setBounds(NUM_CHANNELS * 60, 220, 80, 40);
 }
 
 void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
-
 	if (source == &transportSource[0])
 	{
 		if (transportSource[0].isPlaying())
 		{
-			changeState(State::Transport::PLAYING);
+			changeState(TransportState::PLAYING);
 		}
 		else
 		{
-			changeState(State::Transport::STOPPED);
-		}
-	}
-
-	if (source == &transportSource[1])
-	{
-		if (transportSource[1].isPlaying())
-		{
-			changeState(State::Transport::PLAYING);
-		}
-		else
-		{
-			changeState(State::Transport::STOPPED);
+			changeState(TransportState::STOPPED);
 		}
 	}
 }
 
-void MainComponent::changeState(State::Transport newState)
+void MainComponent::changeState(TransportState newState)
 {
 	if (state != newState)
 	{
@@ -207,7 +169,7 @@ void MainComponent::changeState(State::Transport newState)
 
 		switch (state)
 		{
-		case State::Transport::STOPPED:
+		case TransportState::STOPPED:
 			stopButton.setEnabled(false);
 			playButton.setEnabled(true);
 			for (int chan = 0; chan < NUM_CHANNELS; chan++)
@@ -216,7 +178,7 @@ void MainComponent::changeState(State::Transport newState)
 			}
 			break;
 
-		case State::Transport::STARTING:
+		case TransportState::STARTING:
 			playButton.setEnabled(false);
 			
 			for (int chan = 0; chan < NUM_CHANNELS; chan++)
@@ -226,11 +188,11 @@ void MainComponent::changeState(State::Transport newState)
 			
 			break;
 
-		case State::Transport::PLAYING:
+		case TransportState::PLAYING:
 			stopButton.setEnabled(true);
 			break;
 
-		case State::Transport::STOPPING:
+		case TransportState::STOPPING:
 			for (int chan = 0; chan < NUM_CHANNELS; chan++)
 			{
 				transportSource[chan].stop();
@@ -239,6 +201,7 @@ void MainComponent::changeState(State::Transport newState)
 		}
 	}
 }
+
 
 void MainComponent::loadBtnClicked(int chan)
 {
@@ -260,7 +223,7 @@ void MainComponent::loadBtnClicked(int chan)
 	}
 }
 
-void MainComponent::autoLoadClip(std::string clipName, std::uint8_t channel)
+void MainComponent::autoLoadClip(std::string clipName, int channel)
 {
 	auto clipPath = basePath + "\\Clips\\" + clipName + ".wav";
 
@@ -279,84 +242,23 @@ void MainComponent::autoLoadClip(std::string clipName, std::uint8_t channel)
 	}
 }
 
-void MainComponent::playClip(std::uint8_t clipNum)
+void MainComponent::playClip(int clipNum)
 {
 
-	if(trackStates.at(clipNum) == State::Track::STOPPED 
-		|| trackStates.at(clipNum) == State::Track::PLAYING)
-	{
-		trackStates.at(clipNum) = State::Track::QUEUED;
-	}
-
-	trackEnabled[clipNum] = true;
-
-	//stopTimer();
-	if (readerSource[clipNum].get() != nullptr)// && !transportSource[clipNum].isPlaying())
-	{
-		readerSource[clipNum]->setLooping(true);
-		transportSource[clipNum].setPosition(0.0);
-		//transportSource[clipNum].start();
-	}
-
-	if (!isTimerRunning())
-	{
-		startTimer(2400);
-	}
-
-	/*
-	for (std::uint8_t i = 0; i < 2; i++)
-	{
-		if (i != clipNum)
-		{
-			transportSource[i].stop();
-			transportSource[i].setPosition(0.0);
-		}
-	}*/
-
-	//changeState(TransportState::STARTING);
-}
-
-void MainComponent::stopClip(std::uint8_t clipNum)
-{
-	//trackEnabled[clipNum] = false;
-	//trackStates.at(clipNum) = State::Track::STOPPING;
-
-	if (readerSource[clipNum].get() != nullptr && transportSource[clipNum].isPlaying())
-	{
-		//trackEnabled[clipNum] = false;
-		trackStates.at(clipNum) = State::Track::STOPPING;
-		/*readerSource[clipNum]->setLooping(true);
-		transportSource[clipNum].stop();
-		transportSource[clipNum].setPosition(0.0);*/
-	}
 }
 
 void MainComponent::playBtnClicked()
 {
-	stopTimer();
-
-	for (std::size_t track = 0; track < NUM_CHANNELS; track++)
-	{
-		if (readerSource[track].get() != nullptr)
-		{
-			if (trackStates.at(track) == State::Track::PLAYING
-				|| trackStates.at(track) == State::Track::QUEUED)
-			{
-				readerSource[track]->setLooping(true);
-			}
-		}
-
-	}
 	
-	//if (readerSource[0].get() != nullptr)
-	//	readerSource[0]->setLooping(true);
+	if (readerSource[0].get() != nullptr)
+		readerSource[0]->setLooping(true);
 
-	//if (readerSource[1].get() != nullptr)
-	//	readerSource[1]->setLooping(true);
-	//
+	if (readerSource[1].get() != nullptr)
+		readerSource[1]->setLooping(true);
+	
 	startTimer(2400);
 
-	changeState(State::Transport::STARTING);
+	changeState(TransportState::STARTING);
 }
 
 void MainComponent::recordClip()
@@ -364,7 +266,7 @@ void MainComponent::recordClip()
 
 void MainComponent::stopBtnClicked()
 {
-	changeState(State::Transport::STOPPING);
+	changeState(TransportState::STOPPING);
 	stopTimer();
 }
 
@@ -378,59 +280,18 @@ void MainComponent::loadClips()
 
 void MainComponent::timerCallback()
 {
-	//for (auto &source : transportSource)
-	for(std::size_t i = 0; i < populatedTracks; i++)
+	for (auto &source : transportSource)
 	{
-		switch (trackStates[i])
+		if (source.isPlaying())
 		{
-			case State::Track::PLAYING:
-			{
-				if (trackEnabled[i])
-				{
-					transportSource[i].stop();
-					transportSource[i].setPosition(0.0);
-					transportSource[i].start();
-				}
-			}
-				break;
-			case State::Track::QUEUED:
-			{
-				if (trackEnabled[i])
-				{
-					transportSource[i].stop();
-					transportSource[i].setPosition(0.0);
-					transportSource[i].start();
-				}
-			}
-			case State::Track::STOPPING:
-			{
-				transportSource[i].stop();
-				transportSource[i].setPosition(0.0);
-			}
-			case State::Track::STOPPED:
-			{
-				if (trackEnabled[i])
-				{
-					transportSource[i].stop();
-					transportSource[i].setPosition(0.0);
-					transportSource[i].start();
-				}
-			}
+			source.stop();
+			source.setPosition(0.0);
 		}
-
-
-		//if (//transportSource[i].isPlaying() && 
-		//	trackEnabled[i] && 
-		//	trackStates[i] == State::Track::QUEUED)
-		//{
-		//	transportSource[i].stop();
-		//	transportSource[i].setPosition(0.0);
-		//	transportSource[i].start();
-		//}
+		source.start();
 	}
 }
 
-const std::string MainComponent::getExePath()
+std::string MainComponent::getExePath()
 {
 	char fullPathToExe[MAX_PATH]; // Contains executable file name
 	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);

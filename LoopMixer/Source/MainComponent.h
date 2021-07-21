@@ -4,17 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
-#include <cstdint>
 
 #include "ChannelStrip.h"
 #include "myEnums.h"
 
-//#define NUM_CHANNELS 6
-static const int NUM_CHANNELS = 6;
-
-static std::uint8_t bpmToMs(std::uint8_t bpm, Subdivision subdivision) { return 60000 / bpm * subdivision; }
-
-
+#define NUM_CHANNELS 6
 
 //==============================================================================
 /*
@@ -45,10 +39,6 @@ public:
 
 private:
 	std::string basePath;
-	std::uint8_t bpm = 120;
-	Subdivision subdivision = Subdivision::QUARTER;
-
-	std::uint8_t populatedTracks = 0;
 	//std::vector<ChannelStrip> strips;
 	ChannelStrip strips[NUM_CHANNELS];
 
@@ -60,24 +50,17 @@ private:
 	TextButton play1;
 	TextButton play2;
 
-	TextButton stop1;
-	TextButton stop2;
-
 	Slider volumeSliders[NUM_CHANNELS];
 
 	MixerAudioSource mixer;
-	State::Transport state;
+	TransportState state;
 	AudioFormatManager formatManager;
 	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CHANNELS];
 	AudioTransportSource transportSource[NUM_CHANNELS];
 
-	bool trackEnabled[NUM_CHANNELS] = {false, false, false, false};
-	std::vector<State::Track> trackStates;
+	void initGuiElements();
 
-	void initDataVectors(void);
-	void initGuiElements(void);
-
-	void changeState(State::Transport newState);
+	void changeState(TransportState newState);
 	void loadBtnClicked(int chan);
 	void playBtnClicked();
 	void stopBtnClicked();
@@ -85,14 +68,13 @@ private:
 	void volumeChanged(int channel);
 
 	/* Temporary methods */
-	void autoLoadClip(std::string clipName, std::uint8_t channel);
-	void playClip(std::uint8_t clipNum);
-	void stopClip(std::uint8_t clipNum);
+	void autoLoadClip(std::string clipName, int channel);
+	void playClip(int clipNum);
 	void recordClip();
 
 	void loadClips();
 
-	const std::string getExePath();
+	std::string getExePath();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
