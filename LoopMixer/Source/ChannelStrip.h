@@ -6,7 +6,7 @@
 #include "myEnums.h"
 //#include "AudioRecorder.h"
 
-#define NUM_CLIPS 2
+const int NUM_CLIPS = 2;
 
 class ChannelStrip : public Component
 {
@@ -20,7 +20,7 @@ public:
 	void resized() override;
 
 	/* Channelstrip methods */
-	void changeState(TransportState newState);
+	void changeState(State::Transport newState);
 	void addToMixer(MixerAudioSource* mixer);
 
 	AudioTransportSource getTransport();
@@ -39,14 +39,16 @@ public:
 	Slider     filterKnob;
 
 private:
-	TransportState state;
+	State::Transport state;
+
+	std::uint8_t nClipsPopulated = 0;
 
 	AudioFormatManager formatManager;
 	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CLIPS];
 	AudioTransportSource transportSource[NUM_CLIPS];
 
 	int channelNum = 0;
-	std::string basePath = "";
+	std::string basePath;
 
 	int currentClip = 0;
 	float gain = 0.0;
@@ -55,6 +57,8 @@ private:
 	bool isMuted   = false;
 	bool isSoloed  = false;
 	bool isArmed   = false;
+	
+	State::Track trackState = State::Track::STOPPED;
 
 	void initGuiElements();
 
@@ -67,6 +71,8 @@ private:
 	void recBtnClicked();
 
 	void recordClip();
+
+	bool clipsEmpty(void);
 
 	std::string getBasePath();
 

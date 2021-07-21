@@ -1,11 +1,31 @@
 #pragma once
 
-enum class TransportState
+
+enum Subdivision
 {
-	STOPPED,
-	STARTING,
-	PLAYING,
-	STOPPING
+	WHOLE = 1,
+	QUARTER = 4,
+	EIGHTH = 8,
+	SIXNTH = 16
 };
 
+namespace State
+{
+	enum class Transport
+	{
+		STOPPED,
+		STARTING,
+		PLAYING,
+		STOPPING
+	};
+
+
+	enum class Track
+	{
+		PLAYING,
+		QUEUED,
+		STOPPING,
+		STOPPED
+	};
+};
 
