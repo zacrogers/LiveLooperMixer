@@ -41,6 +41,8 @@ public:
 private:
 	State::Transport state;
 
+	std::uint8_t nClipsPopulated = 0;
+
 	AudioFormatManager formatManager;
 	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CLIPS];
 	AudioTransportSource transportSource[NUM_CLIPS];
@@ -69,6 +71,8 @@ private:
 	void recBtnClicked();
 
 	void recordClip();
+
+	bool clipsEmpty(void);
 
 	std::string getBasePath();
 

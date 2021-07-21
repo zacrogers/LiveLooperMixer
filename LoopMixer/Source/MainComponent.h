@@ -11,6 +11,11 @@
 
 //#define NUM_CHANNELS 6
 static const int NUM_CHANNELS = 6;
+
+static std::uint8_t bpmToMs(std::uint8_t bpm, Subdivision subdivision) { return 60000 / bpm * subdivision; }
+
+
+
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -40,6 +45,10 @@ public:
 
 private:
 	std::string basePath;
+	std::uint8_t bpm = 120;
+	Subdivision subdivision = Subdivision::QUARTER;
+
+	std::uint8_t populatedTracks = 0;
 	//std::vector<ChannelStrip> strips;
 	ChannelStrip strips[NUM_CHANNELS];
 
@@ -65,7 +74,8 @@ private:
 	bool trackEnabled[NUM_CHANNELS] = {false, false, false, false};
 	std::vector<State::Track> trackStates;
 
-	void initGuiElements();
+	void initDataVectors(void);
+	void initGuiElements(void);
 
 	void changeState(State::Transport newState);
 	void loadBtnClicked(int chan);

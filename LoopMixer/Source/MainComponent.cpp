@@ -11,15 +11,21 @@
 //==============================================================================
 MainComponent::MainComponent()
 { 
+	formatManager.registerBasicFormats();
+	basePath = getExePath();
+
+	initDataVectors();
 	initGuiElements();
 
-	formatManager.registerBasicFormats();
+
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
 
-	basePath = getExePath();
+
 	autoLoadClip("lmdrum", 0);
 	autoLoadClip("lmbass", 1);
+
+	populatedTracks = 2; // REMEMER TO REMOVE THIS
 
 	mixer.addInputSource(&transportSource[0], true);
 
@@ -52,13 +58,16 @@ void MainComponent::volumeChanged(int channel)
 
 }
 
-void MainComponent::initGuiElements()
+void MainComponent::initDataVectors(void)
 {
 	for (std::size_t i = 0; i < NUM_CHANNELS; i++)
 	{
 		trackStates.push_back(State::Track::STOPPED);
 	}
+}
 
+void MainComponent::initGuiElements(void)
+{
 	strips[0].clipBtns[0].onClick = [this] { playBtnClicked(); };
 	strips[0].recBtn.onClick = [this] { recordClip(); };
 
@@ -309,14 +318,16 @@ void MainComponent::playClip(std::uint8_t clipNum)
 
 void MainComponent::stopClip(std::uint8_t clipNum)
 {
-	trackEnabled[clipNum] = false;
-	trackStates.at(clipNum) = State::Track::STOPPED;
+	//trackEnabled[clipNum] = false;
+	//trackStates.at(clipNum) = State::Track::STOPPING;
 
 	if (readerSource[clipNum].get() != nullptr && transportSource[clipNum].isPlaying())
 	{
-		//readerSource[clipNum]->setLooping(true);
+		//trackEnabled[clipNum] = false;
+		trackStates.at(clipNum) = State::Track::STOPPING;
+		/*readerSource[clipNum]->setLooping(true);
 		transportSource[clipNum].stop();
-		transportSource[clipNum].setPosition(0.0);
+		transportSource[clipNum].setPosition(0.0);*/
 	}
 }
 
@@ -368,16 +379,54 @@ void MainComponent::loadClips()
 void MainComponent::timerCallback()
 {
 	//for (auto &source : transportSource)
-	for(std::size_t i = 0; i < 2; i++)
+	for(std::size_t i = 0; i < populatedTracks; i++)
 	{
-		if (//transportSource[i].isPlaying() && 
-			trackEnabled[i] && 
-			trackStates[i] == State::Track::QUEUED)
+		switch (trackStates[i])
 		{
-			transportSource[i].stop();
-			transportSource[i].setPosition(0.0);
-			transportSource[i].start();
+			case State::Track::PLAYING:
+			{
+				if (trackEnabled[i])
+				{
+					transportSource[i].stop();
+					transportSource[i].setPosition(0.0);
+					transportSource[i].start();
+				}
+			}
+				break;
+			case State::Track::QUEUED:
+			{
+				if (trackEnabled[i])
+				{
+					transportSource[i].stop();
+					transportSource[i].setPosition(0.0);
+					transportSource[i].start();
+				}
+			}
+			case State::Track::STOPPING:
+			{
+				transportSource[i].stop();
+				transportSource[i].setPosition(0.0);
+			}
+			case State::Track::STOPPED:
+			{
+				if (trackEnabled[i])
+				{
+					transportSource[i].stop();
+					transportSource[i].setPosition(0.0);
+					transportSource[i].start();
+				}
+			}
 		}
+
+
+		//if (//transportSource[i].isPlaying() && 
+		//	trackEnabled[i] && 
+		//	trackStates[i] == State::Track::QUEUED)
+		//{
+		//	transportSource[i].stop();
+		//	transportSource[i].setPosition(0.0);
+		//	transportSource[i].start();
+		//}
 	}
 }
 

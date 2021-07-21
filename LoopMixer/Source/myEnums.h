@@ -1,5 +1,14 @@
 #pragma once
 
+
+enum Subdivision
+{
+	WHOLE = 1,
+	QUARTER = 4,
+	EIGHTH = 8,
+	SIXNTH = 16
+};
+
 namespace State
 {
 	enum class Transport
@@ -15,6 +24,7 @@ namespace State
 	{
 		PLAYING,
 		QUEUED,
+		STOPPING,
 		STOPPED
 	};
 };
