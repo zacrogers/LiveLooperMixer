@@ -52,8 +52,6 @@ void MainComponent::volumeChanged(int channel)
 
 }
 
-
-
 void MainComponent::initGuiElements()
 {
 	strips[0].clipBtns[0].onClick = [this] { playBtnClicked(); };
@@ -95,6 +93,13 @@ void MainComponent::initGuiElements()
 	play2.setButtonText("Play2");
 	play2.onClick = [this] { playClip(1); };
 
+	addAndMakeVisible(&stop1);
+	stop1.setButtonText("Stop1");
+	stop1.onClick = [this] { stopClip(0); };
+
+	addAndMakeVisible(&stop2);
+	stop2.setButtonText("Stop2");
+	stop2.onClick = [this] { stopClip(1); };
 
 	setSize(600, 600);
 }
@@ -139,18 +144,37 @@ void MainComponent::resized()
 		//strips[chan].setBounds(0 + (chan * 60), 0, 40, getHeight());
 	}
 
-	loadButton.setBounds(NUM_CHANNELS * 60, 50, 80, 40);
-	playButton.setBounds(NUM_CHANNELS * 60, 110, 80, 40);
-	stopButton.setBounds(NUM_CHANNELS * 60, 170, 80, 40);
+	std::uint16_t btnHeight = 40;
 
-	loadButton2.setBounds(NUM_CHANNELS * 60, 220, 80, 40);
+	loadButton.setBounds(NUM_CHANNELS * 60, btnHeight + 10, 80, btnHeight);
+	playButton.setBounds(NUM_CHANNELS * 60, (btnHeight * 2) + 10, 80, btnHeight);
+	stopButton.setBounds(NUM_CHANNELS * 60, (btnHeight * 3) + 10, 80, btnHeight);
+	play1.setBounds(NUM_CHANNELS * 60, (btnHeight * 4) + 10, 80, btnHeight);
+	play2.setBounds(NUM_CHANNELS * 60, (btnHeight * 5) + 10, 80, btnHeight);
+	stop1.setBounds(NUM_CHANNELS * 60, (btnHeight * 6) + 10, 80, btnHeight);
+	stop2.setBounds(NUM_CHANNELS * 60, (btnHeight * 7) + 10, 80, btnHeight);
+
+	loadButton2.setBounds(NUM_CHANNELS * 60, (btnHeight * 8) + 10, 80, 40);
 }
 
 void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
+
 	if (source == &transportSource[0])
 	{
 		if (transportSource[0].isPlaying())
+		{
+			changeState(TransportState::PLAYING);
+		}
+		else
+		{
+			changeState(TransportState::STOPPED);
+		}
+	}
+
+	if (source == &transportSource[1])
+	{
+		if (transportSource[1].isPlaying())
 		{
 			changeState(TransportState::PLAYING);
 		}
@@ -202,7 +226,6 @@ void MainComponent::changeState(TransportState newState)
 	}
 }
 
-
 void MainComponent::loadBtnClicked(int chan)
 {
 	FileChooser chooser("Select a Wave file to play...", {}, "*.wav");
@@ -223,7 +246,7 @@ void MainComponent::loadBtnClicked(int chan)
 	}
 }
 
-void MainComponent::autoLoadClip(std::string clipName, int channel)
+void MainComponent::autoLoadClip(std::string clipName, std::uint8_t channel)
 {
 	auto clipPath = basePath + "\\Clips\\" + clipName + ".wav";
 
@@ -242,13 +265,51 @@ void MainComponent::autoLoadClip(std::string clipName, int channel)
 	}
 }
 
-void MainComponent::playClip(int clipNum)
+void MainComponent::playClip(std::uint8_t clipNum)
 {
+	if (isTimerRunning())
+	{
 
+	}
+
+	trackEnabled[clipNum] = true;
+
+	stopTimer();
+	if (readerSource[clipNum].get() != nullptr)// && !transportSource[clipNum].isPlaying())
+	{
+		readerSource[clipNum]->setLooping(true);
+		transportSource[clipNum].setPosition(0.0);
+		transportSource[clipNum].start();
+	}
+	startTimer(2400);
+	/*
+	for (std::uint8_t i = 0; i < 2; i++)
+	{
+		if (i != clipNum)
+		{
+			transportSource[i].stop();
+			transportSource[i].setPosition(0.0);
+		}
+	}*/
+
+	//changeState(TransportState::STARTING);
+}
+
+void MainComponent::stopClip(std::uint8_t clipNum)
+{
+	trackEnabled[clipNum] = false;
+
+	if (readerSource[clipNum].get() != nullptr && transportSource[clipNum].isPlaying())
+	{
+		//readerSource[clipNum]->setLooping(true);
+		transportSource[clipNum].stop();
+		transportSource[clipNum].setPosition(0.0);
+	}
 }
 
 void MainComponent::playBtnClicked()
 {
+	stopTimer();
 	
 	if (readerSource[0].get() != nullptr)
 		readerSource[0]->setLooping(true);
@@ -280,14 +341,15 @@ void MainComponent::loadClips()
 
 void MainComponent::timerCallback()
 {
-	for (auto &source : transportSource)
+	//for (auto &source : transportSource)
+	for(std::size_t i = 0; i < 2; i++)
 	{
-		if (source.isPlaying())
+		if (transportSource[i].isPlaying() && trackEnabled[i])
 		{
-			source.stop();
-			source.setPosition(0.0);
+			transportSource[i].stop();
+			transportSource[i].setPosition(0.0);
+			transportSource[i].start();
 		}
-		source.start();
 	}
 }
 

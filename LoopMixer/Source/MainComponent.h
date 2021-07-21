@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
+#include <cstdint>
 
 #include "ChannelStrip.h"
 #include "myEnums.h"
@@ -50,6 +51,9 @@ private:
 	TextButton play1;
 	TextButton play2;
 
+	TextButton stop1;
+	TextButton stop2;
+
 	Slider volumeSliders[NUM_CHANNELS];
 
 	MixerAudioSource mixer;
@@ -57,6 +61,8 @@ private:
 	AudioFormatManager formatManager;
 	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CHANNELS];
 	AudioTransportSource transportSource[NUM_CHANNELS];
+
+	bool trackEnabled[NUM_CHANNELS] = {false, false, false, false};
 
 	void initGuiElements();
 
@@ -68,8 +74,9 @@ private:
 	void volumeChanged(int channel);
 
 	/* Temporary methods */
-	void autoLoadClip(std::string clipName, int channel);
-	void playClip(int clipNum);
+	void autoLoadClip(std::string clipName, std::uint8_t channel);
+	void playClip(std::uint8_t clipNum);
+	void stopClip(std::uint8_t clipNum);
 	void recordClip();
 
 	void loadClips();
