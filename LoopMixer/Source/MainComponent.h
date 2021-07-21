@@ -9,8 +9,8 @@
 #include "ChannelStrip.h"
 #include "myEnums.h"
 
-#define NUM_CHANNELS 6
-
+//#define NUM_CHANNELS 6
+static const int NUM_CHANNELS = 6;
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -57,16 +57,17 @@ private:
 	Slider volumeSliders[NUM_CHANNELS];
 
 	MixerAudioSource mixer;
-	TransportState state;
+	State::Transport state;
 	AudioFormatManager formatManager;
 	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CHANNELS];
 	AudioTransportSource transportSource[NUM_CHANNELS];
 
 	bool trackEnabled[NUM_CHANNELS] = {false, false, false, false};
+	std::vector<State::Track> trackStates;
 
 	void initGuiElements();
 
-	void changeState(TransportState newState);
+	void changeState(State::Transport newState);
 	void loadBtnClicked(int chan);
 	void playBtnClicked();
 	void stopBtnClicked();
@@ -81,7 +82,7 @@ private:
 
 	void loadClips();
 
-	std::string getExePath();
+	const std::string getExePath();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

@@ -54,6 +54,11 @@ void MainComponent::volumeChanged(int channel)
 
 void MainComponent::initGuiElements()
 {
+	for (std::size_t i = 0; i < NUM_CHANNELS; i++)
+	{
+		trackStates.push_back(State::Track::STOPPED);
+	}
+
 	strips[0].clipBtns[0].onClick = [this] { playBtnClicked(); };
 	strips[0].recBtn.onClick = [this] { recordClip(); };
 
@@ -164,11 +169,11 @@ void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
 	{
 		if (transportSource[0].isPlaying())
 		{
-			changeState(TransportState::PLAYING);
+			changeState(State::Transport::PLAYING);
 		}
 		else
 		{
-			changeState(TransportState::STOPPED);
+			changeState(State::Transport::STOPPED);
 		}
 	}
 
@@ -176,16 +181,16 @@ void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
 	{
 		if (transportSource[1].isPlaying())
 		{
-			changeState(TransportState::PLAYING);
+			changeState(State::Transport::PLAYING);
 		}
 		else
 		{
-			changeState(TransportState::STOPPED);
+			changeState(State::Transport::STOPPED);
 		}
 	}
 }
 
-void MainComponent::changeState(TransportState newState)
+void MainComponent::changeState(State::Transport newState)
 {
 	if (state != newState)
 	{
@@ -193,7 +198,7 @@ void MainComponent::changeState(TransportState newState)
 
 		switch (state)
 		{
-		case TransportState::STOPPED:
+		case State::Transport::STOPPED:
 			stopButton.setEnabled(false);
 			playButton.setEnabled(true);
 			for (int chan = 0; chan < NUM_CHANNELS; chan++)
@@ -202,7 +207,7 @@ void MainComponent::changeState(TransportState newState)
 			}
 			break;
 
-		case TransportState::STARTING:
+		case State::Transport::STARTING:
 			playButton.setEnabled(false);
 			
 			for (int chan = 0; chan < NUM_CHANNELS; chan++)
@@ -212,11 +217,11 @@ void MainComponent::changeState(TransportState newState)
 			
 			break;
 
-		case TransportState::PLAYING:
+		case State::Transport::PLAYING:
 			stopButton.setEnabled(true);
 			break;
 
-		case TransportState::STOPPING:
+		case State::Transport::STOPPING:
 			for (int chan = 0; chan < NUM_CHANNELS; chan++)
 			{
 				transportSource[chan].stop();
@@ -267,21 +272,28 @@ void MainComponent::autoLoadClip(std::string clipName, std::uint8_t channel)
 
 void MainComponent::playClip(std::uint8_t clipNum)
 {
-	if (isTimerRunning())
-	{
 
+	if(trackStates.at(clipNum) == State::Track::STOPPED 
+		|| trackStates.at(clipNum) == State::Track::PLAYING)
+	{
+		trackStates.at(clipNum) = State::Track::QUEUED;
 	}
 
 	trackEnabled[clipNum] = true;
 
-	stopTimer();
+	//stopTimer();
 	if (readerSource[clipNum].get() != nullptr)// && !transportSource[clipNum].isPlaying())
 	{
 		readerSource[clipNum]->setLooping(true);
 		transportSource[clipNum].setPosition(0.0);
-		transportSource[clipNum].start();
+		//transportSource[clipNum].start();
 	}
-	startTimer(2400);
+
+	if (!isTimerRunning())
+	{
+		startTimer(2400);
+	}
+
 	/*
 	for (std::uint8_t i = 0; i < 2; i++)
 	{
@@ -298,6 +310,7 @@ void MainComponent::playClip(std::uint8_t clipNum)
 void MainComponent::stopClip(std::uint8_t clipNum)
 {
 	trackEnabled[clipNum] = false;
+	trackStates.at(clipNum) = State::Track::STOPPED;
 
 	if (readerSource[clipNum].get() != nullptr && transportSource[clipNum].isPlaying())
 	{
@@ -310,16 +323,29 @@ void MainComponent::stopClip(std::uint8_t clipNum)
 void MainComponent::playBtnClicked()
 {
 	stopTimer();
-	
-	if (readerSource[0].get() != nullptr)
-		readerSource[0]->setLooping(true);
 
-	if (readerSource[1].get() != nullptr)
-		readerSource[1]->setLooping(true);
+	for (std::size_t track = 0; track < NUM_CHANNELS; track++)
+	{
+		if (readerSource[track].get() != nullptr)
+		{
+			if (trackStates.at(track) == State::Track::PLAYING
+				|| trackStates.at(track) == State::Track::QUEUED)
+			{
+				readerSource[track]->setLooping(true);
+			}
+		}
+
+	}
 	
+	//if (readerSource[0].get() != nullptr)
+	//	readerSource[0]->setLooping(true);
+
+	//if (readerSource[1].get() != nullptr)
+	//	readerSource[1]->setLooping(true);
+	//
 	startTimer(2400);
 
-	changeState(TransportState::STARTING);
+	changeState(State::Transport::STARTING);
 }
 
 void MainComponent::recordClip()
@@ -327,7 +353,7 @@ void MainComponent::recordClip()
 
 void MainComponent::stopBtnClicked()
 {
-	changeState(TransportState::STOPPING);
+	changeState(State::Transport::STOPPING);
 	stopTimer();
 }
 
@@ -344,7 +370,9 @@ void MainComponent::timerCallback()
 	//for (auto &source : transportSource)
 	for(std::size_t i = 0; i < 2; i++)
 	{
-		if (transportSource[i].isPlaying() && trackEnabled[i])
+		if (//transportSource[i].isPlaying() && 
+			trackEnabled[i] && 
+			trackStates[i] == State::Track::QUEUED)
 		{
 			transportSource[i].stop();
 			transportSource[i].setPosition(0.0);
@@ -353,7 +381,7 @@ void MainComponent::timerCallback()
 	}
 }
 
-std::string MainComponent::getExePath()
+const std::string MainComponent::getExePath()
 {
 	char fullPathToExe[MAX_PATH]; // Contains executable file name
 	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);

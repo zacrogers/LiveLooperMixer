@@ -1,11 +1,21 @@
 #pragma once
 
-enum class TransportState
+namespace State
 {
-	STOPPED,
-	STARTING,
-	PLAYING,
-	STOPPING
-};
+	enum class Transport
+	{
+		STOPPED,
+		STARTING,
+		PLAYING,
+		STOPPING
+	};
 
+
+	enum class Track
+	{
+		PLAYING,
+		QUEUED,
+		STOPPED
+	};
+};
 
