@@ -55,7 +55,11 @@ void MainComponent::volumeChanged(int channel)
 	{
 		transportSource[channel].setGain(volumeSliders[channel].getValue());
 	}
+}
 
+void MainComponent::tempoChanged(void)
+{
+	beatDuration = bpmToMs(tempoSlider.getValue(), subdivision);
 }
 
 void MainComponent::initDataVectors(void)
@@ -84,6 +88,11 @@ void MainComponent::initGuiElements(void)
 		volumeSliders[chan].onValueChange = [this, chan]{ volumeChanged(chan); };
 
 	}
+
+	addAndMakeVisible(&tempoSlider);
+	tempoSlider.setRange(MIN_BPM, MAX_BPM);
+	tempoSlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+	tempoSlider.onValueChange = [this] { tempoChanged(); };
 
 	addAndMakeVisible(&loadButton);
 	loadButton.setButtonText("Load");

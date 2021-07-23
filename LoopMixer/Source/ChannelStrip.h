@@ -6,7 +6,7 @@
 #include "myEnums.h"
 //#include "AudioRecorder.h"
 
-const int NUM_CLIPS = 2;
+constexpr int NUM_CLIPS = 2;
 
 class ChannelStrip : public Component
 {

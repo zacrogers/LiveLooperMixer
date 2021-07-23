@@ -9,8 +9,10 @@
 #include "ChannelStrip.h"
 #include "myEnums.h"
 
-//#define NUM_CHANNELS 6
-static const int NUM_CHANNELS = 6;
+constexpr int NUM_CHANNELS = 6;
+constexpr int CLIPS_PER_CHAN = 2;
+constexpr int MIN_BPM = 60;
+constexpr int MAX_BPM = 250;
 
 static std::uint8_t bpmToMs(std::uint8_t bpm, Subdivision subdivision) { return 60000 / bpm * subdivision; }
 
@@ -46,6 +48,7 @@ public:
 private:
 	std::string basePath;
 	std::uint8_t bpm = 120;
+	int beatDuration = 0;
 	Subdivision subdivision = Subdivision::QUARTER;
 
 	std::uint8_t populatedTracks = 0;
@@ -64,6 +67,7 @@ private:
 	TextButton stop2;
 
 	Slider volumeSliders[NUM_CHANNELS];
+	Slider tempoSlider;
 
 	MixerAudioSource mixer;
 	State::Transport state;
@@ -83,6 +87,7 @@ private:
 	void stopBtnClicked();
 
 	void volumeChanged(int channel);
+	void tempoChanged(void);
 
 	/* Temporary methods */
 	void autoLoadClip(std::string clipName, std::uint8_t channel);
