@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include <string.h>
-#include <windows.h>
+//#include <windows.h>
 
 #include "myEnums.h"
 //#include "AudioRecorder.h"

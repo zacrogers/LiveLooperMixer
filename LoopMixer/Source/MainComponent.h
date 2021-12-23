@@ -5,7 +5,7 @@
 #include <string.h>
 //#include <windows.h>
 
-//#include "ChannelStrip.h"
+#include "ChannelStrip.h"
 #include "myEnums.h"
 
 #define NUM_CHANNELS 6
