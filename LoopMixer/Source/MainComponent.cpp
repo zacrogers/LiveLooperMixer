@@ -18,8 +18,8 @@ MainComponent::MainComponent()
 	transportSource[1].addChangeListener(this);
 
 	basePath = getExePath();
-	autoLoadClip("lmdrum", 0);
-	autoLoadClip("lmbass", 1);
+//	autoLoadClip("lmdrum", 0);
+//	autoLoadClip("lmbass", 1);
 
 	mixer.addInputSource(&transportSource[0], true);
 
@@ -56,8 +56,8 @@ void MainComponent::volumeChanged(int channel)
 
 void MainComponent::initGuiElements()
 {
-	strips[0].clipBtns[0].onClick = [this] { playBtnClicked(); };
-	strips[0].recBtn.onClick = [this] { recordClip(); };
+//	strips[0].clipBtns[0].onClick = [this] { playBtnClicked(); };
+//	strips[0].recBtn.onClick = [this] { recordClip(); };
 
 	for (int chan = 0; chan < NUM_CHANNELS; ++chan)
 	{
@@ -205,22 +205,22 @@ void MainComponent::changeState(TransportState newState)
 
 void MainComponent::loadBtnClicked(int chan)
 {
-	FileChooser chooser("Select a Wave file to play...", {}, "*.wav");
+//	FileChooser chooser("Select a Wave file to play...", {}, "*.wav");
 
-	if (chooser.browseForFileToOpen())
-	{
-		auto file = chooser.getResult();
-		auto* reader = formatManager.createReaderFor(file);
-
-		if (reader != nullptr)
-		{
-			std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
-			transportSource[chan].setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-			mixer.addInputSource(&transportSource[chan], true);
-			playButton.setEnabled(true);
-			readerSource[chan].reset(newSource.release());
-		}
-	}
+//	if (chooser.browseForFileToOpen())
+//	{
+//		auto file = chooser.getResult();
+//		auto* reader = formatManager.createReaderFor(file);
+//
+//		if (reader != nullptr)
+//		{
+//			std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
+//			transportSource[chan].setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+//			mixer.addInputSource(&transportSource[chan], true);
+//			playButton.setEnabled(true);
+//			readerSource[chan].reset(newSource.release());
+//		}
+//	}
 }
 
 void MainComponent::autoLoadClip(std::string clipName, int channel)
@@ -274,7 +274,7 @@ void MainComponent::loadClips()
 {
 	for(int channel = 0; channel < NUM_CHANNELS; ++channel)
 	{
-		strips[channel].addToMixer(&mixer);
+//		strips[channel].addToMixer(&mixer);
 	}
 }
 
@@ -293,9 +293,9 @@ void MainComponent::timerCallback()
 
 std::string MainComponent::getExePath()
 {
-	char fullPathToExe[MAX_PATH]; // Contains executable file name
-	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);
-	auto finalSlashIndex = ((std::string)fullPathToExe).find_last_of("\\");
+//	char fullPathToExe[MAX_PATH]; // Contains executable file name
+//	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);
+//	auto finalSlashIndex = ((std::string)fullPathToExe).find_last_of("\\");
 
-	return ((std::string)fullPathToExe).substr(0, finalSlashIndex);
+    return "penis";//((std::string)fullPathToExe).substr(0, finalSlashIndex);
 }
