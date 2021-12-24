@@ -3,7 +3,6 @@
 #include <JuceHeader.h>
 #include <stdio.h>
 #include <string.h>
-//#include <windows.h>
 
 #include "ChannelStrip.h"
 #include "myEnums.h"
@@ -38,7 +37,7 @@ public:
     void resized() override;
 
 private:
-	std::string basePath;
+	String basePath;
 	//std::vector<ChannelStrip> strips;
 //	ChannelStrip strips[NUM_CHANNELS];
 
@@ -74,7 +73,7 @@ private:
 
 	void loadClips();
 
-	std::string getExePath();
+	String getExePath();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

@@ -18,6 +18,8 @@ MainComponent::MainComponent()
 	transportSource[1].addChangeListener(this);
 
 	basePath = getExePath();
+       
+
 //	autoLoadClip("lmdrum", 0);
 //	autoLoadClip("lmbass", 1);
 
@@ -291,11 +293,8 @@ void MainComponent::timerCallback()
 	}
 }
 
-std::string MainComponent::getExePath()
+String MainComponent::getExePath()
 {
-//	char fullPathToExe[MAX_PATH]; // Contains executable file name
-//	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);
-//	auto finalSlashIndex = ((std::string)fullPathToExe).find_last_of("\\");
-
-    return "penis";//((std::string)fullPathToExe).substr(0, finalSlashIndex);
+    String filePath = File::getSpecialLocation(File::SpecialLocationType::currentExecutableFile).getFullPathName();
+    return filePath;
 }
