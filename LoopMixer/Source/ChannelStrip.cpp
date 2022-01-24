@@ -3,7 +3,7 @@
 
 ChannelStrip::ChannelStrip()
 {
-	basePath = getBasePath();
+//	basePath = getBasePath();
 	initGuiElements();
 }
 
@@ -160,11 +160,12 @@ void ChannelStrip::recBtnClicked()
 
 }
 
-std::string ChannelStrip::getBasePath()
-{
-	char fullPathToExe[MAX_PATH]; // Contains executable file name
-	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);
-	auto finalSlashIndex = ((std::string)fullPathToExe).find_last_of("\\");
-
-	return ((std::string)fullPathToExe).substr(0, finalSlashIndex);
-}
+//std::string ChannelStrip::getBasePath()
+//{
+////	char fullPathToExe[MAX_PATH]; // Contains executable file name
+////	auto spath = GetModuleFileName(NULL, fullPathToExe, MAX_PATH);
+////	auto finalSlashIndex = ((std::string)fullPathToExe).find_last_of("\\");
+////
+////	return ((std::string)fullPathToExe).substr(0, finalSlashIndex);
+//    return juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
+//}

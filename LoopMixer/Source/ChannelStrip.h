@@ -7,6 +7,7 @@
 //#include "AudioRecorder.h"
 
 #define NUM_CLIPS 2
+#define MAX_PATH 50
 
 class ChannelStrip : public Component
 {

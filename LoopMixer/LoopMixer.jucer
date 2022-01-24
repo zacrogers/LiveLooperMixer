@@ -8,6 +8,18 @@
       <FILE id="Gb3uMA" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
       <FILE id="GT8WPD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="zpAVnG" name="AudioRecorder.cpp" compile="1" resource="0"
+            file="Source/AudioRecorder.cpp"/>
+      <FILE id="NrNRWq" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
+      <FILE id="M2QQ0x" name="ChannelStrip.cpp" compile="1" resource="0"
+            file="Source/ChannelStrip.cpp"/>
+      <FILE id="WxGWfI" name="ChannelStrip.h" compile="0" resource="0" file="Source/ChannelStrip.h"/>
+      <FILE id="SBlA3M" name="Recorder.cpp" compile="1" resource="0" file="../../JuceProjects/RecordingTest/Source/Recorder.cpp"/>
+      <FILE id="qW6TSV" name="Recorder.h" compile="0" resource="0" file="../../JuceProjects/RecordingTest/Source/Recorder.h"/>
+      <FILE id="Hb5fYN" name="helper.h" compile="0" resource="0" file="Source/helper.h"/>
+      <FILE id="BmsP0o" name="Metronome.h" compile="0" resource="0" file="../../JuceProjects/RecordingTest/Source/Metronome.h"/>
+      <FILE id="EPSMhJ" name="Metronome.cpp" compile="1" resource="0" file="../../JuceProjects/RecordingTest/Source/Metronome.cpp"/>
+      <FILE id="aOvYeC" name="myEnums.h" compile="0" resource="0" file="Source/myEnums.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

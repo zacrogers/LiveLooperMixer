@@ -17,7 +17,7 @@ MainComponent::MainComponent()
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
 
-	basePath = getExePath();
+//	basePath = getExePath();
        
 
 //	autoLoadClip("lmdrum", 0);
@@ -208,7 +208,7 @@ void MainComponent::changeState(TransportState newState)
 void MainComponent::loadBtnClicked(int chan)
 {
 //	FileChooser chooser("Select a Wave file to play...", {}, "*.wav");
-
+//
 //	if (chooser.browseForFileToOpen())
 //	{
 //		auto file = chooser.getResult();
@@ -293,8 +293,8 @@ void MainComponent::timerCallback()
 	}
 }
 
-String MainComponent::getExePath()
-{
-    String filePath = File::getSpecialLocation(File::SpecialLocationType::currentExecutableFile).getFullPathName();
-    return filePath;
-}
+//String MainComponent::getExePath()
+//{
+//    String filePath = File::getSpecialLocation(File::SpecialLocationType::currentExecutableFile).getFullPathName();
+//    return filePath;
+//}

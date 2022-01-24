@@ -9,6 +9,8 @@
 
 #define NUM_CHANNELS 6
 
+using namespace juce;
+
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
