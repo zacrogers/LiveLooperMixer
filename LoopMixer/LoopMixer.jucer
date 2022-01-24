@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="UbAY54" name="LoopMixer" projectType="guiapp" displaySplashScreen="1"
-              jucerFormatVersion="1">
+              jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="OVQGhd" name="LoopMixer">
     <GROUP id="{BB76F3E3-8B18-E27E-6826-3B5C65F9AA8C}" name="Source">
       <FILE id="OAwcJ5" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>

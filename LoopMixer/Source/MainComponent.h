@@ -9,16 +9,15 @@
 
 #define NUM_CHANNELS 6
 
-using namespace juce;
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent   : public AudioAppComponent,
-	                    public ChangeListener,
-						public Timer
+class MainComponent   : public juce::AudioAppComponent,
+                        public juce::ChangeListener,
+                        public juce::Timer
 {
 public:
     //==============================================================================
@@ -27,37 +26,37 @@ public:
 
     //==============================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
 
-	void changeListenerCallback(ChangeBroadcaster* source) override;
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
 	void timerCallback() override;
 
     //==============================================================================
-    void paint (Graphics& g) override;
+    void paint (juce::Graphics& g) override;
     void resized() override;
 
 private:
-	String basePath;
+    juce::String basePath;
 	//std::vector<ChannelStrip> strips;
 //	ChannelStrip strips[NUM_CHANNELS];
 
-	TextButton loadButton;
-	TextButton loadButton2;
-	TextButton playButton;
-	TextButton stopButton;
+    juce::TextButton loadButton;
+    juce::TextButton loadButton2;
+    juce::TextButton playButton;
+    juce::TextButton stopButton;
 
-	TextButton play1;
-	TextButton play2;
+    juce::TextButton play1;
+    juce::TextButton play2;
 
-	Slider volumeSliders[NUM_CHANNELS];
+    juce::Slider volumeSliders[NUM_CHANNELS];
 
-	MixerAudioSource mixer;
-	TransportState state;
-	AudioFormatManager formatManager;
-	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CHANNELS];
-	AudioTransportSource transportSource[NUM_CHANNELS];
+    juce::MixerAudioSource mixer;
+    TransportState state;
+    juce::AudioFormatManager formatManager;
+	std::unique_ptr<juce::AudioFormatReaderSource> readerSource[NUM_CHANNELS];
+    juce::AudioTransportSource transportSource[NUM_CHANNELS];
 
 	void initGuiElements();
 
@@ -75,7 +74,7 @@ private:
 
 	void loadClips();
 
-	String getExePath();
+    juce::String getExePath();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

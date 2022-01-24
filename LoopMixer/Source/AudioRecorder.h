@@ -2,30 +2,30 @@
 
 #include <JuceHeader.h>
 
-class AudioRecorder : public AudioIODeviceCallback
+class AudioRecorder : public juce::AudioIODeviceCallback
 {
 public:
 	AudioRecorder();
 	~AudioRecorder() override;
 
-	void startRecording(const File& file);
+	void startRecording(const juce::File& file);
 	void stop();
 	bool isRecording() const
 	{
 		return activeWriter.load() != nullptr;
 	}
 	
-	void audioDeviceAboutToStart(AudioIODevice* device) override;
+	void audioDeviceAboutToStart(juce::AudioIODevice* device) override;
 	void audioDeviceStopped() override;
 	void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels,
 		float** outputChannelData, int numOutputChannels, int numSamples) override;
 
 private:
-	TimeSliceThread backgroundThread{ "Audio Recorder Thread" }; // the thread that will write our audio data to disk
-	std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
+    juce::TimeSliceThread backgroundThread{ "Audio Recorder Thread" }; // the thread that will write our audio data to disk
+	std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
 	double sampleRate = 0.0;
-	int64 nextSampleNum = 0;
+    juce::int64 nextSampleNum = 0;
 
-	CriticalSection writerLock;
-	std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter{ nullptr };
+    juce::CriticalSection writerLock;
+	std::atomic<juce::AudioFormatWriter::ThreadedWriter*> activeWriter{ nullptr };
 };

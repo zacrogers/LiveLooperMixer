@@ -19,8 +19,8 @@ void ChannelStrip::initGuiElements()
 	/* Setup volume slider */
 	addAndMakeVisible(&volumeSlider);
 	volumeSlider.setRange(0, 100);
-	volumeSlider.setSliderStyle(Slider::SliderStyle::LinearVertical);
-	getLookAndFeel().setColour(Slider::thumbColourId, Colours::aquamarine);
+	volumeSlider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+	getLookAndFeel().setColour(juce::Slider::thumbColourId, juce::Colours::aquamarine);
 
 	/* Setup buttons */
 	addAndMakeVisible(&stopBtn);
@@ -42,12 +42,12 @@ void ChannelStrip::initGuiElements()
 	for (int btn = 0; btn < NUM_CLIPS; ++btn)
 	{
 		addAndMakeVisible(&clipBtns[btn]);
-		clipBtns[btn].setColour(TextButton::buttonColourId, Colours::green);
+		clipBtns[btn].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
 		clipBtns[btn].onClick = [this, btn] { clipBtnClicked(btn); };
 	}
 }
 
-void ChannelStrip::paint(Graphics&)
+void ChannelStrip::paint(juce::Graphics&)
 {
 
 }
@@ -107,12 +107,12 @@ void ChannelStrip::loadClip(int slot, std::string clipName)
 
 	std::cout << clipPath << std::endl;
 
-	auto file = File(clipPath);
+	auto file = juce::File(clipPath);
 	auto* reader = formatManager.createReaderFor(file);
 
 	if (reader != nullptr)
 	{
-		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
+		std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
 		transportSource[0].setSource(newSource.get(), 0, nullptr, reader->sampleRate);
 		/*
 		mixer.addInputSource(&transportSource[0], true);
@@ -123,7 +123,7 @@ void ChannelStrip::loadClip(int slot, std::string clipName)
 }
 
 
-void ChannelStrip::addToMixer(MixerAudioSource* mixer)
+void ChannelStrip::addToMixer(juce::MixerAudioSource* mixer)
 {
 	for (int clip = 0; clip < NUM_CLIPS; ++clip)
 	{

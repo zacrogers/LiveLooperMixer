@@ -26,10 +26,10 @@ MainComponent::MainComponent()
 	mixer.addInputSource(&transportSource[0], true);
 
     // Some platforms require permissions to open input channels so request that here
-    if (RuntimePermissions::isRequired (RuntimePermissions::recordAudio)
-        && ! RuntimePermissions::isGranted (RuntimePermissions::recordAudio))
+    if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
+        && ! juce::RuntimePermissions::isGranted (juce::RuntimePermissions::recordAudio))
     {
-        RuntimePermissions::request (RuntimePermissions::recordAudio,
+        juce::RuntimePermissions::request (juce::RuntimePermissions::recordAudio,
                                      [&] (bool granted) { if (granted)  setAudioChannels (2, 2); });
     }
     else
@@ -70,7 +70,7 @@ void MainComponent::initGuiElements()
 
 		addAndMakeVisible(&volumeSliders[chan]);
 		volumeSliders[chan].setRange(0, 1);
-		volumeSliders[chan].setSliderStyle(Slider::SliderStyle::LinearVertical);
+		volumeSliders[chan].setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		volumeSliders[chan].onValueChange = [this, chan]{ volumeChanged(chan); };
 
 	}
@@ -81,12 +81,12 @@ void MainComponent::initGuiElements()
 
 	addAndMakeVisible(&playButton);
 	playButton.setButtonText("Play");
-	playButton.setColour(TextButton::buttonColourId, Colours::green);
+	playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
 	playButton.onClick = [this] { playBtnClicked(); };
 
 	addAndMakeVisible(&stopButton);
 	stopButton.setButtonText("Stop");
-	stopButton.setColour(TextButton::buttonColourId, Colours::red);
+	stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
 	stopButton.onClick = [this] { stopBtnClicked(); };
 
 	addAndMakeVisible(&play1);
@@ -107,7 +107,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	mixer.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
-void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
 	if (readerSource[0].get() == nullptr)
 	{
@@ -128,9 +128,9 @@ void MainComponent::releaseResources()
 }
 
 //==============================================================================
-void MainComponent::paint (Graphics& g)
+void MainComponent::paint (juce::Graphics& g)
 {
-	g.fillAll(Colours::darkblue);
+	g.fillAll(juce::Colours::darkblue);
 }
 
 void MainComponent::resized()
@@ -148,7 +148,7 @@ void MainComponent::resized()
 	loadButton2.setBounds(NUM_CHANNELS * 60, 220, 80, 40);
 }
 
-void MainComponent::changeListenerCallback(ChangeBroadcaster* source)
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
 	if (source == &transportSource[0])
 	{
@@ -231,12 +231,12 @@ void MainComponent::autoLoadClip(std::string clipName, int channel)
 
 	std::cout << clipPath << std::endl;
 
-	auto file = File(clipPath);
+	auto file = juce::File(clipPath);
 	auto* reader = formatManager.createReaderFor(file);
 
 	if (reader != nullptr)
 	{
-		std::unique_ptr<AudioFormatReaderSource> newSource(new AudioFormatReaderSource(reader, true));
+		std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
 		transportSource[channel].setSource(newSource.get(), 0, nullptr, reader->sampleRate);
 		mixer.addInputSource(&transportSource[channel], true);
 		playButton.setEnabled(true);
