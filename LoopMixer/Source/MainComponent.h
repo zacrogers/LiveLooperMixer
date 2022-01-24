@@ -5,6 +5,8 @@
 #include <string.h>
 
 #include "ChannelStrip.h"
+#include "Recorder.h"
+#include "VisualMetronome.h"
 #include "myEnums.h"
 
 #define NUM_CHANNELS 6
@@ -38,10 +40,56 @@ public:
     void resized() override;
 
 private:
-    juce::String basePath;
-	//std::vector<ChannelStrip> strips;
-//	ChannelStrip strips[NUM_CHANNELS];
+    /** New stuff */
+    const int mMinRecordBars { 1 };
+    const int mMaxRecordBars { 8 };
+    
+    int mBarsToRecord { 4 };
+    bool mRecordArmed { false };
+    bool mInputMuted { false };
+    
+    juce::Colour     mDisabledColour  { juce::Colours::darkslateblue };
+    
+    // Buttons
+    juce::TextButton mPlayButton      { "P" };
+    juce::TextButton mStopButton      { "S" };
+    juce::TextButton mArmRecordButton { "R" };
+    juce::TextButton mInputMuteButton { "M" };
+    
+    // Sliders
+    juce::Slider     mInputTrimSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mMasterVolSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+//    juce::Slider     mBpmSlider       { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mNumRecBarsSlider   { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    
+    // Labels
+    juce::Label     mInputTrimLabel   { "mInputTrimLabel", "Trim" };
+    juce::Label     mMasterVolLabel   { "mMasterVolLabel", "Master" };
+    juce::Label     mBpmLabel         { "mBpmLabel", "BPM" };
+    juce::Label     mNumRecBarsLabel  { "mNumRecBarsLabel", "Bars" };
 
+    VisualMetronome mMetronome        { true };
+    
+    Recorder mRecorder;
+    
+    juce::File mLastRecording;
+    juce::AudioDeviceManager mAudioDeviceManager;
+    
+    void mChangeState();
+    
+    void mStartPlaying();
+    void mStopPlaying();
+    void mStartRecording();
+    void mStopRecording();
+    
+    
+    
+    /** old stuff */
+    juce::String basePath;
+    //std::vector<ChannelStrip> strips;
+//    ChannelStrip strips[NUM_CHANNELS];
+
+    /** Old gui components */
     juce::TextButton loadButton;
     juce::TextButton loadButton2;
     juce::TextButton playButton;
@@ -51,12 +99,15 @@ private:
     juce::TextButton play2;
 
     juce::Slider volumeSliders[NUM_CHANNELS];
+    
+    
 
     juce::MixerAudioSource mixer;
     TransportState state;
     juce::AudioFormatManager formatManager;
-	std::unique_ptr<juce::AudioFormatReaderSource> readerSource[NUM_CHANNELS];
+    std::unique_ptr<juce::AudioFormatReaderSource> readerSource[NUM_CHANNELS];
     juce::AudioTransportSource transportSource[NUM_CHANNELS];
+    
 
 	void initGuiElements();
 
