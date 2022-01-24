@@ -327,6 +327,10 @@ void MainComponent::mStartPlaying()
 
 void MainComponent::mStopPlaying()
 {
+//    if (mRecorder.isRecording())
+//    {
+//    }
+    
     mStopRecording();
     stopTimer();
     mMetronome.resetStep();
@@ -363,8 +367,10 @@ void MainComponent::mStartRecording()
 
 void MainComponent::mStopRecording()
 {
+    mRecordArmed = false;
     mRecorder.stopRecording();
     mLastRecording = juce::File();
+    DBG("Stopped recording");
 }
 
 void MainComponent::changeState(TransportState newState)
@@ -489,6 +495,7 @@ void MainComponent::timerCallback()
     if (!mRecorder.isRecording() && mRecordArmed && !mMetronome.countingIn())
     {
         mStartRecording();
+        DBG("Start recording");
     }
     
     mMetronome.advance();
@@ -498,6 +505,7 @@ void MainComponent::timerCallback()
         if (mMetronome.numBars() == mNumRecBarsSlider.getValue())
         {
             mStopRecording();
+            
         }
     }
 //	for (auto &source : transportSource)
