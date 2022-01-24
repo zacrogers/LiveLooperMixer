@@ -1,14 +1,15 @@
 #pragma once
 #include <JuceHeader.h>
 #include <string.h>
-#include <windows.h>
+//#include <windows.h>
 
 #include "myEnums.h"
 //#include "AudioRecorder.h"
 
 #define NUM_CLIPS 2
+#define MAX_PATH 50
 
-class ChannelStrip : public Component
+class ChannelStrip : public juce::Component
 {
 public:
 	//==============================================================================
@@ -16,34 +17,34 @@ public:
 	~ChannelStrip();
 
 	/* Component methods */
-	void paint(Graphics&) override;
+	void paint(juce::Graphics&) override;
 	void resized() override;
 
 	/* Channelstrip methods */
 	void changeState(TransportState newState);
-	void addToMixer(MixerAudioSource* mixer);
+	void addToMixer(juce::MixerAudioSource* mixer);
 
-	AudioTransportSource getTransport();
+    juce::AudioTransportSource getTransport();
 
 	void setChannelNum(int num) { channelNum = num; };
 
 	/* Gui elements */
-	TextButton stopBtn;
-	TextButton muteBtn;
-	TextButton recBtn;
-	TextButton soloBtn;
+    juce::TextButton stopBtn;
+    juce::TextButton muteBtn;
+    juce::TextButton recBtn;
+    juce::TextButton soloBtn;
 
-	TextButton clipBtns[NUM_CLIPS];
+    juce::TextButton clipBtns[NUM_CLIPS];
 
-	Slider     volumeSlider;
-	Slider     filterKnob;
+    juce::Slider     volumeSlider;
+    juce::Slider     filterKnob;
 
 private:
 	TransportState state;
 
-	AudioFormatManager formatManager;
-	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CLIPS];
-	AudioTransportSource transportSource[NUM_CLIPS];
+    juce::AudioFormatManager formatManager;
+	std::unique_ptr<juce::AudioFormatReaderSource> readerSource[NUM_CLIPS];
+    juce::AudioTransportSource transportSource[NUM_CLIPS];
 
 	int channelNum = 0;
 	std::string basePath = "";

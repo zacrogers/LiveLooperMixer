@@ -3,21 +3,23 @@
 #include <JuceHeader.h>
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>
 
 #include "ChannelStrip.h"
+#include "Recorder.h"
+#include "VisualMetronome.h"
 #include "myEnums.h"
 
 #define NUM_CHANNELS 6
+
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent   : public AudioAppComponent,
-	                    public ChangeListener,
-						public Timer
+class MainComponent   : public juce::AudioAppComponent,
+                        public juce::ChangeListener,
+                        public juce::Timer
 {
 public:
     //==============================================================================
@@ -26,37 +28,86 @@ public:
 
     //==============================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
 
-	void changeListenerCallback(ChangeBroadcaster* source) override;
+	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
 	void timerCallback() override;
 
     //==============================================================================
-    void paint (Graphics& g) override;
+    void paint (juce::Graphics& g) override;
     void resized() override;
 
 private:
-	std::string basePath;
-	//std::vector<ChannelStrip> strips;
-	ChannelStrip strips[NUM_CHANNELS];
+    /** New stuff */
+    const int mMinRecordBars { 1 };
+    const int mMaxRecordBars { 8 };
+    
+    int mBarsToRecord { 4 };
+    bool mRecordArmed { false };
+    bool mInputMuted { false };
+    
+    juce::Colour     mDisabledColour  { juce::Colours::darkslateblue };
+    
+    // Buttons
+    juce::TextButton mPlayButton      { "P" };
+    juce::TextButton mStopButton      { "S" };
+    juce::TextButton mArmRecordButton { "R" };
+    juce::TextButton mInputMuteButton { "M" };
+    
+    // Sliders
+    juce::Slider     mInputTrimSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mMasterVolSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+//    juce::Slider     mBpmSlider       { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mNumRecBarsSlider   { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    
+    // Labels
+    juce::Label     mInputTrimLabel   { "mInputTrimLabel", "Trim" };
+    juce::Label     mMasterVolLabel   { "mMasterVolLabel", "Master" };
+    juce::Label     mBpmLabel         { "mBpmLabel", "BPM" };
+    juce::Label     mNumRecBarsLabel  { "mNumRecBarsLabel", "Bars" };
 
-	TextButton loadButton;
-	TextButton loadButton2;
-	TextButton playButton;
-	TextButton stopButton;
+    VisualMetronome mMetronome        { true };
+    
+    Recorder mRecorder;
+    
+    juce::File mLastRecording;
+    juce::AudioDeviceManager mAudioDeviceManager;
+    
+    void mChangeState();
+    
+    void mStartPlaying();
+    void mStopPlaying();
+    void mStartRecording();
+    void mStopRecording();
+    
+    
+    
+    /** old stuff */
+    juce::String basePath;
+    //std::vector<ChannelStrip> strips;
+//    ChannelStrip strips[NUM_CHANNELS];
 
-	TextButton play1;
-	TextButton play2;
+    /** Old gui components */
+    juce::TextButton loadButton;
+    juce::TextButton loadButton2;
+    juce::TextButton playButton;
+    juce::TextButton stopButton;
 
-	Slider volumeSliders[NUM_CHANNELS];
+    juce::TextButton play1;
+    juce::TextButton play2;
 
-	MixerAudioSource mixer;
-	TransportState state;
-	AudioFormatManager formatManager;
-	std::unique_ptr<AudioFormatReaderSource> readerSource[NUM_CHANNELS];
-	AudioTransportSource transportSource[NUM_CHANNELS];
+    juce::Slider volumeSliders[NUM_CHANNELS];
+    
+    
+
+    juce::MixerAudioSource mixer;
+    TransportState state;
+    juce::AudioFormatManager formatManager;
+    std::unique_ptr<juce::AudioFormatReaderSource> readerSource[NUM_CHANNELS];
+    juce::AudioTransportSource transportSource[NUM_CHANNELS];
+    
 
 	void initGuiElements();
 
@@ -74,7 +125,7 @@ private:
 
 	void loadClips();
 
-	std::string getExePath();
+    juce::String getExePath();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
