@@ -4,6 +4,8 @@
               jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="OVQGhd" name="LoopMixer">
     <GROUP id="{BB76F3E3-8B18-E27E-6826-3B5C65F9AA8C}" name="Source">
+      <FILE id="JbFldj" name="AudioThru.cpp" compile="1" resource="0" file="Source/AudioThru.cpp"/>
+      <FILE id="ZWuXU3" name="AudioThru.h" compile="0" resource="0" file="Source/AudioThru.h"/>
       <FILE id="uRLC5j" name="ExternalSync.cpp" compile="1" resource="0"
             file="Source/ExternalSync.cpp"/>
       <FILE id="zdzczc" name="ExternalSync.h" compile="0" resource="0" file="Source/ExternalSync.h"/>

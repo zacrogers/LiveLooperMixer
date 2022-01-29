@@ -52,8 +52,11 @@ MainComponent::MainComponent()
                                       mAudioDeviceManager.initialise (numInputChannels, 2, nullptr, true, {}, nullptr);
                                   });
      mAudioDeviceManager.addAudioCallback(&mRecorder);
+    
      
      setAudioChannels(1, 2);
+    
+    mixer.addInputSource(&mAudioThru, true);
 }
 
 MainComponent::~MainComponent()

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "ChannelStrip.h"
+#include "AudioThru.h"
 #include "Recorder.h"
 #include "VisualMetronome.h"
 #include "myEnums.h"
@@ -74,10 +75,12 @@ private:
 
     VisualMetronome mMetronome        { true };
     
-    Recorder mRecorder;
     
     juce::File mLastRecording;
     juce::AudioDeviceManager mAudioDeviceManager;
+
+    AudioThru mAudioThru {mAudioDeviceManager};
+    Recorder mRecorder;
     
     void mChangeState();
     
