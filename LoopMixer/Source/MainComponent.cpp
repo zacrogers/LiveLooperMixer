@@ -22,11 +22,12 @@ MainComponent::MainComponent()
 	formatManager.registerBasicFormats();
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
-
+    
+    juce::String filePath = juce::File::getSpecialLocation(juce::File::SpecialLocationType::currentExecutableFile).getFullPathName();
+    mClipsPath = filePath + "/clips";
 
 //	basePath = getExePath();
        
-
 //	autoLoadClip("lmdrum", 0);
 //	autoLoadClip("lmbass", 1);
 
@@ -228,46 +229,46 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    if (mInputMuted)
-    {
-        bufferToFill.clearActiveBufferRegion();
-        return;
-    }
+//    if (mInputMuted)
+//    {
+//        bufferToFill.clearActiveBufferRegion();
+//        return;
+//    }
     
-    auto* device = mAudioDeviceManager.getCurrentAudioDevice();
-    auto activeInputChannels = device->getActiveInputChannels();
-    auto activeOutputChannels = device->getActiveOutputChannels();
-
-    auto maxInputChannels  = activeInputChannels .getHighestBit() + 1;
-    auto maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
-    
-    for (auto channel = 0; channel < maxOutputChannels; ++channel)
-    {
-        if ((! activeOutputChannels[channel]) || maxInputChannels == 0)
-        {
-            bufferToFill.buffer->clear (channel, bufferToFill.startSample, bufferToFill.numSamples);
-        }
-        
-        else
-        {
-            auto actualInputChannel = channel % maxInputChannels; // [1]
-
-            if (! activeInputChannels[channel]) // [2]
-            {
-                bufferToFill.buffer->clear (channel, bufferToFill.startSample, bufferToFill.numSamples);
-            }
-            else // [3]
-            {
-                auto* inBuffer = bufferToFill.buffer->getReadPointer (actualInputChannel,
-                                                                      bufferToFill.startSample);
-                auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
-
-                
-                for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                    outBuffer[sample] = inBuffer[sample] * mInputTrimSlider.getValue();
-            }
-        }
-    }
+//    auto* device = mAudioDeviceManager.getCurrentAudioDevice();
+//    auto activeInputChannels = device->getActiveInputChannels();
+//    auto activeOutputChannels = device->getActiveOutputChannels();
+//
+//    auto maxInputChannels  = activeInputChannels .getHighestBit() + 1;
+//    auto maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
+//    
+//    for (auto channel = 0; channel < maxOutputChannels; ++channel)
+//    {
+//        if ((! activeOutputChannels[channel]) || maxInputChannels == 0)
+//        {
+//            bufferToFill.buffer->clear (channel, bufferToFill.startSample, bufferToFill.numSamples);
+//        }
+//        
+//        else
+//        {
+//            auto actualInputChannel = channel % maxInputChannels; // [1]
+//
+//            if (! activeInputChannels[channel]) // [2]
+//            {
+//                bufferToFill.buffer->clear (channel, bufferToFill.startSample, bufferToFill.numSamples);
+//            }
+//            else // [3]
+//            {
+//                auto* inBuffer = bufferToFill.buffer->getReadPointer (actualInputChannel,
+//                                                                      bufferToFill.startSample);
+//                auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
+//
+//                
+//                for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
+//                    outBuffer[sample] = inBuffer[sample] * mInputTrimSlider.getValue();
+//            }
+//        }
+//    }
     
     
     
@@ -279,7 +280,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 //	}
 
 	//transportSource.getNextAudioBlock(bufferToFill);
-//	mixer.getNextAudioBlock(bufferToFill);
+	mixer.getNextAudioBlock(bufferToFill);
 }
 
 void MainComponent::releaseResources()
@@ -346,7 +347,6 @@ void MainComponent::resized()
     {
         mClipButtons[i].setBounds(sliderX(4), i*50, 50, 50);
     }
-    
 }
 
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
@@ -414,6 +414,8 @@ void MainComponent::mStartRecording()
     
     mLastRecording = parentDir.getNonexistentChildFile("LoopMixerFile", ".wav");
     
+    DBG("START: " << mLastRecording.getFullPathName());
+    
     mRecorder.startRecording(mLastRecording);
 }
 
@@ -440,6 +442,7 @@ void MainComponent::mRecordClip(int channelNum, int clipNum)
     
     mLastRecording = parentDir.getNonexistentChildFile(fName, ".wav");
     
+    DBG("SAVING: " << mLastRecording.getFullPathName());
     mRecorder.startRecording(mLastRecording);
 }
 
@@ -448,7 +451,9 @@ void MainComponent::mStopRecording()
     mRecordArmed = false;
     mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blue);
     mRecorder.stopRecording();
+    mLoadRecordedClip();
     mLastRecording = juce::File();
+    
     DBG("Stopped recording");
 }
 
@@ -513,6 +518,24 @@ void MainComponent::loadBtnClicked(int chan)
 //		}
 //	}
 }
+
+void MainComponent::mLoadRecordedClip()
+{
+    DBG("LOADING: " << mLastRecording.getFullPathName());
+    
+    auto* reader = formatManager.createReaderFor(mLastRecording);
+    
+    if (reader != nullptr)
+    {
+        std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
+        transportSource[0].setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+        mixer.addInputSource(&transportSource[0], true);
+        readerSource[0].reset(newSource.release());
+        transportSource[0].start();
+    }
+    
+}
+
 
 void MainComponent::autoLoadClip(std::string clipName, int channel)
 {

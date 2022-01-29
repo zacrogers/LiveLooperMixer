@@ -89,6 +89,7 @@ private:
     bool mClipEmpty[numClips]     = { true, true, true, true };
     bool mClipArmed[numClips]     = { false, false, false, false };
     bool mClipRecording[numClips] = { false, false, false, false };
+    bool mClipStopping[numClips]  = { false, false, false, false };
     bool mClipPlaying[numClips]   = { false, false, false, false };
     
     void mHandleClipButton(int channelNum, int clipNum);
@@ -96,6 +97,7 @@ private:
     void mPlayClip(int channelNum, int clipNum);
     void mStopClip(int channelNum, int clipNum);
     void mStopRecordClip(int channelNum, int clipNum);
+    void mLoadClip(int channelNum, int clipNum);
     
     
     
@@ -116,7 +118,6 @@ private:
     juce::Slider volumeSliders[NUM_CHANNELS];
     
     
-
     juce::MixerAudioSource mixer;
     TransportState state;
     juce::AudioFormatManager formatManager;
@@ -132,6 +133,8 @@ private:
 	void stopBtnClicked();
 
 	void volumeChanged(int channel);
+    
+    void mLoadRecordedClip();
 
 	/* Temporary methods */
 	void autoLoadClip(std::string clipName, int channel);
@@ -141,6 +144,8 @@ private:
 	void loadClips();
 
     juce::String getExePath();
+    
+    juce::String mClipsPath;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
