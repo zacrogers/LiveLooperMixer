@@ -10,12 +10,19 @@
 
 //==============================================================================
 MainComponent::MainComponent()
-{ 
+{
+//    for (int i = 0; i < 4; ++i)
+//    {
+//        mClipButtons.add(std::unique_ptr<juce::TextButton*>());
+//    }
+    
+    
 	initGuiElements();
 
 	formatManager.registerBasicFormats();
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
+
 
 //	basePath = getExePath();
        
@@ -81,7 +88,20 @@ void MainComponent::initGuiElements()
 		volumeSliders[chan].onValueChange = [this, chan]{ volumeChanged(chan); };
 
 	}
-
+    
+    int channel = 1;
+    
+    for(int clip = 0; clip < 4; ++clip)
+    {
+        addAndMakeVisible(mClipButtons[clip]);
+        mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+        mClipButtons[clip].onClick = [this, channel, clip]
+        {
+            mHandleClipButton(channel, clip);
+        };
+    }
+    
+    
 //	addAndMakeVisible(&loadButton);
 //	loadButton.setButtonText("Load");
 //	loadButton.onClick = [this] { loadBtnClicked(0); };
@@ -123,9 +143,33 @@ void MainComponent::initGuiElements()
         if(mRecordArmed)
         {
             mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+            
+            for(int i = 0; i < numClips; ++i)
+            {
+                if(mClipEmpty[i])
+                {
+                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+                }
+                else
+                {
+                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+                }
+            }
         }
         else{
             mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blue);
+    
+            for(int i = 0; i < numClips; ++i)
+            {
+                if(mClipEmpty[i])
+                {
+                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::blue );
+                }
+                else
+                {
+                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+                }
+            }
         }
     };
     
@@ -281,6 +325,7 @@ void MainComponent::resized()
     
     mMetronome.setBounds(areaWidth-metroWidth-5, 5, metroWidth, metroHeight);
     
+    // Button positions
     int tButtonX = areaWidth - buttonSize - btnBuffer; // Transport buttons x pos
     #define tButtonY(p) (metroHeight + (buttonSize * p) + (btnBuffer * p) + (btnBuffer * 2))
     
@@ -289,11 +334,18 @@ void MainComponent::resized()
     mArmRecordButton.setBounds(tButtonX, tButtonY(2), buttonSize, buttonSize);
     mInputMuteButton.setBounds(tButtonX, tButtonY(3), buttonSize, buttonSize);
     
+    // Slider positions
     #define sliderX(pos) (tButtonX - (buttonSize * pos) - (sliderBuffer * pos)) //start pos from 1
     
     mInputTrimSlider.setBounds(sliderX(1), tButtonY(0), 50, 250);
     mMasterVolSlider.setBounds(sliderX(2), tButtonY(0), 50, 250);
     mNumRecBarsSlider.setBounds(sliderX(3), tButtonY(0), 50, 250);
+    
+    
+    for(int i = 0; i < 4; ++i)
+    {
+        mClipButtons[i].setBounds(sliderX(4), i*50, 50, 50);
+    }
     
 }
 
@@ -365,9 +417,36 @@ void MainComponent::mStartRecording()
     mRecorder.startRecording(mLastRecording);
 }
 
+void MainComponent::mRecordClip(int channelNum, int clipNum)
+{
+    if (! juce::RuntimePermissions::isGranted(juce::RuntimePermissions::writeExternalStorage))
+    {
+        SafePointer<MainComponent> safeThis (this);
+        
+        juce::RuntimePermissions::request(juce::RuntimePermissions::writeExternalStorage,
+                                          [safeThis] (bool granted) mutable {
+            if (granted)
+            {
+                safeThis->mStartRecording();
+            }
+        });
+        
+        return;
+    }
+    
+    auto parentDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
+    
+    juce::String fName { "channel_" + juce::String(channelNum) + "_clip_" + juce::String(clipNum) };
+    
+    mLastRecording = parentDir.getNonexistentChildFile(fName, ".wav");
+    
+    mRecorder.startRecording(mLastRecording);
+}
+
 void MainComponent::mStopRecording()
 {
     mRecordArmed = false;
+    mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blue);
     mRecorder.stopRecording();
     mLastRecording = juce::File();
     DBG("Stopped recording");
@@ -482,10 +561,18 @@ void MainComponent::stopBtnClicked()
 	stopTimer();
 }
 
+
+void MainComponent::mHandleClipButton(int channelNum, int clipNum)
+{
+    
+    
+}
+
+
 void MainComponent::loadClips()
 {
 	for(int channel = 0; channel < NUM_CHANNELS; ++channel)
-	{
+	{ 
 //		strips[channel].addToMixer(&mixer);
 	}
 }
@@ -500,7 +587,9 @@ void MainComponent::timerCallback()
     
     mMetronome.advance();
     
-    if (mRecordArmed && mRecorder.isRecording())
+    if ((mRecordArmed && mRecorder.isRecording()) &&
+        (mMetronome.previousBeat() == mMetronome.finalBeat()) &&
+        (mMetronome.currentBeat() == mMetronome.startBeat()))
     {
         if (mMetronome.numBars() == mNumRecBarsSlider.getValue())
         {

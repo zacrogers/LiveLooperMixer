@@ -40,6 +40,10 @@ public:
     
     bool isEnabled() const { return mEnabled; };
     void setIsPlaying(bool isPlaying) { mIsPlaying = isPlaying; }
+    int previousBeat() const { return mPreviousBeat; }
+    
+    int startBeat() const { return mStartBeat; }
+    int finalBeat() const { return mFinalBeat; }
     
     int numBars() const { return mNumBars; }
     
@@ -67,6 +71,7 @@ private:
     
     int mStartBeat            { 1 };
     int mCurrentBeat          { mStartBeat };
+    int mPreviousBeat         { 0 };
     int mFinalBeat            { 8 };
     int mNcountInBeats        { 4 };
     int mNumBars              { 0 };

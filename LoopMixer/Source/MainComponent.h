@@ -11,7 +11,7 @@
 
 #define NUM_CHANNELS 6
 
-
+constexpr int numClips = 4;
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -48,6 +48,8 @@ private:
     bool mRecordArmed { false };
     bool mInputMuted { false };
     
+    int mLastPlayedIndex { 0 };
+    
     juce::Colour     mDisabledColour  { juce::Colours::darkslateblue };
     
     // Buttons
@@ -55,6 +57,8 @@ private:
     juce::TextButton mStopButton      { "S" };
     juce::TextButton mArmRecordButton { "R" };
     juce::TextButton mInputMuteButton { "M" };
+    
+    juce::TextButton mClipButtons[numClips];
     
     // Sliders
     juce::Slider     mInputTrimSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
@@ -81,6 +85,17 @@ private:
     void mStopPlaying();
     void mStartRecording();
     void mStopRecording();
+    
+    bool mClipEmpty[numClips]     = { true, true, true, true };
+    bool mClipArmed[numClips]     = { false, false, false, false };
+    bool mClipRecording[numClips] = { false, false, false, false };
+    bool mClipPlaying[numClips]   = { false, false, false, false };
+    
+    void mHandleClipButton(int channelNum, int clipNum);
+    void mRecordClip(int channelNum, int clipNum);
+    void mPlayClip(int channelNum, int clipNum);
+    void mStopClip(int channelNum, int clipNum);
+    void mStopRecordClip(int channelNum, int clipNum);
     
     
     

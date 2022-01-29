@@ -103,6 +103,8 @@ void VisualMetronome::advance()
 {
     repaint();
     
+    mPreviousBeat = mCurrentBeat;
+    
     if (mCountingIn)
     {
         if (mCurrentBeat < mNcountInBeats)
@@ -128,6 +130,7 @@ void VisualMetronome::advance()
             mNumBarsLabel.setText(juce::String(mNumBars), juce::NotificationType::dontSendNotification);
         }
     }
+    
 }
  
 
