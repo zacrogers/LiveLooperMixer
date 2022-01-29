@@ -56,7 +56,7 @@ MainComponent::MainComponent()
      
      setAudioChannels(1, 2);
     
-    mixer.addInputSource(&mAudioThru, true);
+    mixer.addInputSource(&mAudioThru, true); 
 }
 
 MainComponent::~MainComponent()
@@ -197,6 +197,10 @@ void MainComponent::initGuiElements()
     addAndMakeVisible(&mInputTrimSlider);
     mInputTrimSlider.setRange(0, 1);
     mInputTrimSlider.setValue(0.0);
+    mInputTrimSlider.onValueChange = [this] ()
+    {
+        mAudioThru.setTrim(mInputTrimSlider.getValue());
+    };
     
     addAndMakeVisible(&mMasterVolSlider);
     mMasterVolSlider.setRange(0, 1);
@@ -237,44 +241,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 //        bufferToFill.clearActiveBufferRegion();
 //        return;
 //    }
-    
-//    auto* device = mAudioDeviceManager.getCurrentAudioDevice();
-//    auto activeInputChannels = device->getActiveInputChannels();
-//    auto activeOutputChannels = device->getActiveOutputChannels();
-//
-//    auto maxInputChannels  = activeInputChannels .getHighestBit() + 1;
-//    auto maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
-//    
-//    for (auto channel = 0; channel < maxOutputChannels; ++channel)
-//    {
-//        if ((! activeOutputChannels[channel]) || maxInputChannels == 0)
-//        {
-//            bufferToFill.buffer->clear (channel, bufferToFill.startSample, bufferToFill.numSamples);
-//        }
-//        
-//        else
-//        {
-//            auto actualInputChannel = channel % maxInputChannels; // [1]
-//
-//            if (! activeInputChannels[channel]) // [2]
-//            {
-//                bufferToFill.buffer->clear (channel, bufferToFill.startSample, bufferToFill.numSamples);
-//            }
-//            else // [3]
-//            {
-//                auto* inBuffer = bufferToFill.buffer->getReadPointer (actualInputChannel,
-//                                                                      bufferToFill.startSample);
-//                auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
-//
-//                
-//                for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-//                    outBuffer[sample] = inBuffer[sample] * mInputTrimSlider.getValue();
-//            }
-//        }
-//    }
-    
-    
-    
+
     
 //	if (readerSource[0].get() == nullptr)
 //	{

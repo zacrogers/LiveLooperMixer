@@ -10,6 +10,8 @@
 
 #include "Recorder.h"
 
+namespace z_lib
+{
 
 Recorder::Recorder()
 {
@@ -109,3 +111,4 @@ bool Recorder::isRecording() const
     return activeWriter.load() != nullptr;
 }
 
+}

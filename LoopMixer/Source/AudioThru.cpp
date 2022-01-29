@@ -10,7 +10,8 @@
 
 #include "AudioThru.h"
 
-//using namespace::z_lib;
+namespace z_lib
+{
 
 AudioThru::AudioThru(juce::AudioDeviceManager &deviceManager)
 {
@@ -67,4 +68,23 @@ void AudioThru::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFi
             }
         }
     }
+}
+
+
+void AudioThru::setTrim(float value)
+{
+    if(value > 1)
+    {
+        mTrimValue = 1;
+    }
+    else if (value <= 0)
+    {
+        mTrimValue = 0;
+    }
+    else
+    {
+        mTrimValue = value;
+    }
+}
+
 }

@@ -79,8 +79,8 @@ private:
     juce::File mLastRecording;
     juce::AudioDeviceManager mAudioDeviceManager;
 
-    AudioThru mAudioThru {mAudioDeviceManager};
-    Recorder mRecorder;
+    z_lib::AudioThru mAudioThru { mAudioDeviceManager };
+    z_lib::Recorder mRecorder;
     
     void mChangeState();
     

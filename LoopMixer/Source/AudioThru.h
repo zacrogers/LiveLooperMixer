@@ -12,8 +12,8 @@
 
 #include <JuceHeader.h>
 
-//namespace z_lib
-//{
+namespace z_lib
+{
 class AudioThru : public juce::AudioSource
 {
 
@@ -25,13 +25,16 @@ public:
     void releaseResources() override;
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     
+    void setTrim(float value);
+    
 private:
     juce::AudioDeviceManager *mAudioDeviceManager;
     
     double mTrimValue { 0.5 };
+    double mPanValue;
     bool mMuted { false };
     
 };
-//};
+};
 
 
