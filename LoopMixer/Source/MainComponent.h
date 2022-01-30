@@ -12,7 +12,8 @@
 
 #define NUM_CHANNELS 6
 
-constexpr int numClips = 4;
+constexpr int numClips    = 4;
+constexpr int numChannels = 4;
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all

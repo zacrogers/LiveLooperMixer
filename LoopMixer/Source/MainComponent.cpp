@@ -222,9 +222,9 @@ void MainComponent::initGuiElements()
     mNumRecBarsLabel.attachToComponent(&mNumRecBarsSlider, false);
     
     /** Other stuff */
-    
     addAndMakeVisible(mMetronome);
-
+    
+    addAndMakeVisible(mChannelStrip);
 
 	setSize(900, 600);
 }
@@ -279,14 +279,17 @@ void MainComponent::resized()
     int buttonSize = 50;
     int btnBuffer = 15;
     int sliderBuffer = 20;
+    int csBuffer = 10;
     
     // Place items: left -> right, top -> bottom
     
-    for (int chan = 0; chan < NUM_CHANNELS; ++chan)
-    {
-        volumeSliders[chan].setBounds(0 + (chan * 60), 0, 40, getHeight());
-        //strips[chan].setBounds(0 + (chan * 60), 0, 40, getHeight());
-    }
+    mChannelStrip.setBounds(csBuffer, 0, areaWidth / 12, area.getHeight());
+    
+//    for (int chan = 0; chan < NUM_CHANNELS; ++chan)
+//    {
+//        volumeSliders[chan].setBounds(0 + (chan * 60), 0, 40, getHeight());
+//        //strips[chan].setBounds(0 + (chan * 60), 0, 40, getHeight());
+//    }
 
 //    loadButton.setBounds(NUM_CHANNELS * 60, 50, 80, 40);
 //    playButton.setBounds(NUM_CHANNELS * 60, 110, 80, 40);

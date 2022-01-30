@@ -49,7 +49,7 @@ public:
     
 private:
     // Member variables
-    State mState      { State::PreparingToStop };
+    State mState      { State::Stopped };
 
     bool mMuted       { false };
     bool mRecordArmed { false };
@@ -73,7 +73,7 @@ private:
     
     ClipButton mClipButtons[numClips];
     
-    juce::Slider mVolumeSlider;
+    juce::Slider mVolumeSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::NoTextBox };
     juce::Slider mPanSlider;
     
     // Member functions

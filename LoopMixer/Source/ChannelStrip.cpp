@@ -38,13 +38,42 @@ void ChannelStrip::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffer
 
 void ChannelStrip::paint (juce::Graphics& g)
 {
+    g.fillAll(juce::Colours::darkblue);
     
+    /// Draw border
+    g.setColour(juce::Colours::darkslategrey);
+    g.drawRect(getLocalBounds());
 }
  
 
 void ChannelStrip::resized()
 {
+    auto area = getLocalBounds();
     
+    int buttonHeight = area.getHeight() / 12;
+    int buttonWidth = area.getWidth();
+    
+    int vertBuffer = area.getHeight() / 80;
+    
+    mVolumeSlider.setBounds(0,
+                            (area.getHeight() - (buttonHeight * 8) - (vertBuffer * 2)),
+                            buttonWidth,
+                            buttonHeight * 4.5);
+    
+    mMuteButton.setBounds(0,
+                          (area.getHeight() - buttonHeight - vertBuffer),
+                          buttonWidth,
+                          buttonHeight);
+    
+    mStopButton.setBounds(0,
+                          (area.getHeight() - (buttonHeight * 2) - (vertBuffer * 2)),
+                          buttonWidth,
+                          buttonHeight);
+    
+    mRecordArmButton.setBounds(0,
+                               (area.getHeight() - (buttonHeight * 3) - (vertBuffer * 3)),
+                               buttonWidth,
+                               buttonHeight);
 }
 
 
@@ -83,6 +112,14 @@ void ChannelStrip::mInitGuiElements()
     /** Buttons */
     addAndMakeVisible(mRecordArmButton);
     mRecordArmButton.onClick = [this] () { mRecordArmButtonClicked(); };
+    if(mRecordArmed)
+    {
+        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+    }
+    else
+    {
+        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+    }
     
     addAndMakeVisible(mMuteButton);
     mMuteButton.onClick = [this] () { mMuteButtonClicked(); };
@@ -103,6 +140,7 @@ void ChannelStrip::mInitGuiElements()
         mVolume = mVolumeSlider.getValue();
     };
     
+    setSize(10, 600);
 }
 
 void ChannelStrip::mChangeState()
@@ -163,6 +201,15 @@ void ChannelStrip::mStopButtonClicked()
 void ChannelStrip::mMuteButtonClicked()
 {
     mMuted =! mMuted;
+    
+    if (mMuted)
+    {
+        mMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+    }
+    else
+    {
+        mMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgreen);
+    }
 }
 
 
