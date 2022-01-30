@@ -1,6 +1,205 @@
 #include "ChannelStrip.h"
 
 
+namespace z_lib
+{
+
+ChannelStrip::ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder)
+{
+    pDeviceManager = &deviceManager;
+    pRecorder = &recorder;
+    mInitGuiElements();
+}
+
+
+ChannelStrip::~ChannelStrip()
+{
+    
+}
+
+
+void ChannelStrip::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+{
+    
+}
+
+
+void ChannelStrip::releaseResources()
+{
+    
+}
+
+
+void ChannelStrip::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
+{
+    
+}
+
+
+void ChannelStrip::paint (juce::Graphics& g)
+{
+    
+}
+ 
+
+void ChannelStrip::resized()
+{
+    
+}
+
+
+void ChannelStrip::play()
+{
+    if (mState == State::Stopped || mState == State::PreparingToPlay)
+    {   
+        mStartPlaying(mLastClipSelected);
+        mState = State::Playing;
+    }
+}
+
+
+void ChannelStrip::stop()
+{
+    if (mState == State::Playing || mState == State::PreparingToStop)
+    {
+        mStopPlaying();
+        mState = State::Stopped;
+    }
+}
+
+
+void ChannelStrip::record()
+{
+    if(mState == State::PreparingToRecord)
+    {
+        mStartRecording(mChannelNum, mLastClipSelected);
+        mState = State::Recording;
+    }
+}
+
+
+void ChannelStrip::mInitGuiElements()
+{
+    /** Buttons */
+    addAndMakeVisible(mRecordArmButton);
+    mRecordArmButton.onClick = [this] () { mRecordArmButtonClicked(); };
+    
+    addAndMakeVisible(mMuteButton);
+    mMuteButton.onClick = [this] () { mMuteButtonClicked(); };
+    
+    addAndMakeVisible(mStopButton);
+    mStopButton.onClick = [this] () { mStopButtonClicked(); };
+    
+    for (int i = 0; i < numClips; ++i)
+    {
+        addAndMakeVisible(mClipButtons[i]);
+    }
+    
+    /** Sliders */
+    addAndMakeVisible(mVolumeSlider);
+    mVolumeSlider.setValue(mVolume);
+    mVolumeSlider.onValueChange = [this] ()
+    {
+        mVolume = mVolumeSlider.getValue();
+    };
+    
+}
+
+void ChannelStrip::mChangeState()
+{
+    sendChangeMessage();
+    switch (mState)
+    {
+        case State::Playing :
+            mStopButton.setEnabled(true);
+            break;
+        case State::Stopped :
+            mStopButton.setEnabled(false);
+            break;
+        case State::Recording :
+            mStopButton.setEnabled(true);
+            break;
+        case State::PreparingToPlay :
+            mStopButton.setEnabled(true);
+            break;
+        case State::PreparingToStop :
+            mStopButton.setEnabled(false);
+            break;
+
+        default:
+            break;
+    }
+}
+
+
+void ChannelStrip::mRecordArmButtonClicked()
+{
+    if(mState == State::Stopped)
+    {
+        mRecordArmed = !mRecordArmed;
+        
+        if(mRecordArmed)
+        {
+            mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+        }
+        else
+        {
+            mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+        }
+    }
+}
+
+
+void ChannelStrip::mStopButtonClicked()
+{
+    if(mState == State::Playing)
+    {
+        mState = State::PreparingToStop;
+    }
+    sendChangeMessage();
+}
+
+
+void ChannelStrip::mMuteButtonClicked()
+{
+    mMuted =! mMuted;
+}
+
+
+void ChannelStrip::mStartPlaying(int clipNum)
+{
+    sendChangeMessage();
+}
+
+
+void ChannelStrip::mStopPlaying()
+{
+    sendChangeMessage();
+}
+
+
+void ChannelStrip::mStartRecording(int channelNum, int clipNum)
+{
+    sendChangeMessage();
+}
+
+
+void ChannelStrip::mStopRecording()
+{
+    sendChangeMessage();
+}
+
+
+void ChannelStrip::mLoadClip()
+{
+    
+}
+
+
+}
+
+
+
 ChannelStrip::ChannelStrip()
 {
 //	basePath = getBasePath();

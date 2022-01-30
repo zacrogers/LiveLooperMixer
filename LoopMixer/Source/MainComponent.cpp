@@ -23,6 +23,8 @@ MainComponent::MainComponent()
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
     
+    mChannelStrip.addChangeListener(this);
+    
     juce::String filePath = juce::File::getSpecialLocation(juce::File::SpecialLocationType::currentExecutableFile).getFullPathName();
     mClipsPath = filePath + "/clips";
 
@@ -54,7 +56,7 @@ MainComponent::MainComponent()
      mAudioDeviceManager.addAudioCallback(&mRecorder);
     
      
-     setAudioChannels(1, 2);
+    setAudioChannels(1, 2);
     
     mixer.addInputSource(&mAudioThru, true); 
 }
@@ -71,7 +73,6 @@ void MainComponent::volumeChanged(int channel)
 	{
 		transportSource[channel].setGain(volumeSliders[channel].getValue());
 	}
-
 }
 
 
@@ -99,7 +100,7 @@ void MainComponent::initGuiElements()
     {
         addAndMakeVisible(mClipButtons[clip]);
         mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-        mClipButtons[clip].onClick = [this, channel, clip]
+        mClipButtons[clip].onClick = [this, channel, clip] ()
         {
             mHandleClipButton(channel, clip);
         };
@@ -161,7 +162,7 @@ void MainComponent::initGuiElements()
             }
         }
         else{
-            mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::blue);
+            mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
     
             for(int i = 0; i < numClips; ++i)
             {
@@ -332,6 +333,37 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 			changeState(TransportState::STOPPED);
 		}
 	}
+    
+    if(source == &mChannelStrip)
+    {
+        DBG("***** Channel strip callback *****");
+        if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToPlay)
+        {
+            DBG("Preparing play");
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToStop)
+        {
+            DBG("Preparing stop");
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToRecord)
+        {
+            DBG("Preparing rec");
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::Stopped)
+        {
+            DBG("Stopped");
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::Playing)
+        {
+            DBG("Playing");
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::Recording)
+        {
+            DBG("Recording");
+        }
+        DBG("*******************");
+
+    }
 }
 
 
@@ -570,6 +602,21 @@ void MainComponent::loadClips()
 	}
 }
 
+
+bool MainComponent::mPeriodEnded()
+{
+    bool ended { false };
+    
+    if((mMetronome.previousBeat() == mMetronome.finalBeat()) &&
+       (mMetronome.currentBeat() == mMetronome.startBeat()))
+    {
+        ended = true;
+    }
+    
+    return ended;
+}
+
+
 void MainComponent::timerCallback()
 {
     if (!mRecorder.isRecording() && mRecordArmed && !mMetronome.countingIn())
@@ -580,9 +627,25 @@ void MainComponent::timerCallback()
     
     mMetronome.advance();
     
-    if ((mRecordArmed && mRecorder.isRecording()) &&
-        (mMetronome.previousBeat() == mMetronome.finalBeat()) &&
-        (mMetronome.currentBeat() == mMetronome.startBeat()))
+    if (mPeriodEnded())
+    {
+        DBG("Period ended");
+        if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToPlay)
+        {
+            mChannelStrip.play();
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToStop)
+        {
+            mChannelStrip.stop();
+        }
+        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToRecord)
+        {
+            mChannelStrip.record();
+        }
+    }
+    
+    
+    if ((mRecordArmed && mRecorder.isRecording()))
     {
         if (mMetronome.numBars() == mNumRecBarsSlider.getValue())
         {
@@ -600,9 +663,3 @@ void MainComponent::timerCallback()
 //		source.start();
 //	}
 }
-
-//String MainComponent::getExePath()
-//{
-//    String filePath = File::getSpecialLocation(File::SpecialLocationType::currentExecutableFile).getFullPathName();
-//    return filePath;
-//}

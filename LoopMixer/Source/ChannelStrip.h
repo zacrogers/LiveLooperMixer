@@ -5,9 +5,94 @@
 
 #include "myEnums.h"
 //#include "AudioRecorder.h"
+#include "ClipButton.h"
+#include "Recorder.h"
 
 #define NUM_CLIPS 2
 #define MAX_PATH 50
+
+namespace z_lib
+{
+constexpr int numClips = 4;
+
+class ChannelStrip : public juce::AudioAppComponent,
+                     public juce::ChangeBroadcaster
+{
+public:
+    enum class State
+    {
+        Playing,
+        Recording,
+        Stopped,
+        PreparingToPlay,
+        PreparingToStop,
+        PreparingToRecord
+    };
+
+    ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
+    ~ChannelStrip();
+    
+    // Audio source methods
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
+    void releaseResources() override;
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
+    
+    // Component methods
+    void paint (juce::Graphics& g) override;
+    void resized() override;
+    
+    void play();
+    void stop();
+    void record();
+    
+    State state() { return mState; }
+    
+private:
+    // Member variables
+    State mState      { State::PreparingToStop };
+
+    bool mMuted       { false };
+    bool mRecordArmed { false };
+
+    double mVolume    { 0 };
+    double mPan       { 0 };
+    
+    int mChannelNum   { 0 };
+    
+    int mLastClipSelected { 0 };
+    
+    juce::File mCurrentClip;
+    juce::AudioDeviceManager *pDeviceManager;
+    Recorder *pRecorder;
+    
+    
+    // Gui elements
+    juce::TextButton mRecordArmButton;
+    juce::TextButton mStopButton;
+    juce::TextButton mMuteButton;
+    
+    ClipButton mClipButtons[numClips];
+    
+    juce::Slider mVolumeSlider;
+    juce::Slider mPanSlider;
+    
+    // Member functions
+    void mInitGuiElements();
+    
+    void mChangeState();
+    
+    void mRecordArmButtonClicked();
+    void mStopButtonClicked();
+    void mMuteButtonClicked();
+    
+    void mStartPlaying(int clipNum);
+    void mStopPlaying();
+    void mStartRecording(int channelNum, int clipNum);
+    void mStopRecording();
+    void mLoadClip();
+    
+};
+}
 
 class ChannelStrip : public juce::Component
 {

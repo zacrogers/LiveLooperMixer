@@ -9,3 +9,20 @@
 */
 
 #include "ClipButton.h"
+
+
+namespace z_lib
+{
+
+ClipButton::ClipButton()
+{
+        
+}
+
+ClipButton::~ClipButton()
+{
+    
+}
+
+
+}

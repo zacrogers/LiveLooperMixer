@@ -15,7 +15,8 @@
 namespace z_lib
 {
 
-class ClipButton : public juce::TextButton
+class ClipButton : public juce::TextButton,
+                   public juce::ChangeBroadcaster
 {
     
 public:

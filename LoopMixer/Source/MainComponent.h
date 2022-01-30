@@ -62,10 +62,10 @@ private:
     juce::TextButton mClipButtons[numClips];
     
     // Sliders
-    juce::Slider     mInputTrimSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
-    juce::Slider     mMasterVolSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mInputTrimSlider  { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mMasterVolSlider  { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
 //    juce::Slider     mBpmSlider       { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
-    juce::Slider     mNumRecBarsSlider   { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
+    juce::Slider     mNumRecBarsSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };
     
     // Labels
     juce::Label     mInputTrimLabel   { "mInputTrimLabel", "Trim" };
@@ -81,6 +81,7 @@ private:
 
     z_lib::AudioThru mAudioThru { mAudioDeviceManager };
     z_lib::Recorder mRecorder;
+    z_lib::ChannelStrip mChannelStrip { mAudioDeviceManager, mRecorder };
     
     void mChangeState();
     
@@ -138,6 +139,8 @@ private:
 	void volumeChanged(int channel);
     
     void mLoadRecordedClip();
+    
+    bool mPeriodEnded(); // Checks when bar or period is ending 
 
 	/* Temporary methods */
 	void autoLoadClip(std::string clipName, int channel);

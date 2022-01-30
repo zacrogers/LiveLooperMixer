@@ -26,13 +26,14 @@ public:
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     
     void setTrim(float value);
+    void setPan(float value);
     
 private:
     juce::AudioDeviceManager *mAudioDeviceManager;
     
     double mTrimValue { 0.5 };
-    double mPanValue;
-    bool mMuted { false };
+    double mPanValue  { 0.9 };
+    bool mMuted       { false };
     
 };
 };
