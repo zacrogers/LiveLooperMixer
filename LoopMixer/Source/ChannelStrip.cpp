@@ -55,10 +55,16 @@ void ChannelStrip::resized()
     
     int vertBuffer = area.getHeight() / 80;
     
+    for(int i = 0; i < numClips; ++i)
+    {
+        mClipButtons[i].setBounds(0, (buttonHeight * i), buttonWidth, buttonHeight);
+    }
+    
+    
     mVolumeSlider.setBounds(0,
-                            (area.getHeight() - (buttonHeight * 8) - (vertBuffer * 2)),
+                            (area.getHeight() - (buttonHeight * 8) + (vertBuffer * 2)),
                             buttonWidth,
-                            buttonHeight * 4.5);
+                            buttonHeight * 4);
     
     mMuteButton.setBounds(0,
                           (area.getHeight() - buttonHeight - vertBuffer),

@@ -71,7 +71,7 @@ private:
     juce::TextButton mStopButton;
     juce::TextButton mMuteButton;
     
-    ClipButton mClipButtons[numClips];
+    z_lib::ClipButton mClipButtons[numClips];
     
     juce::Slider mVolumeSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::NoTextBox };
     juce::Slider mPanSlider;
