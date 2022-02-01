@@ -9,6 +9,11 @@ ChannelStrip::ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &re
     pDeviceManager = &deviceManager;
     pRecorder = &recorder;
     mInitGuiElements();
+    
+    for (int i = 0; i < numClips; ++i)
+    {
+        mClipButtons[i].addChangeListener(this);
+    }
 }
 
 
@@ -46,6 +51,7 @@ void ChannelStrip::paint (juce::Graphics& g)
 }
  
 
+
 void ChannelStrip::resized()
 {
     auto area = getLocalBounds();
@@ -80,6 +86,18 @@ void ChannelStrip::resized()
                                (area.getHeight() - (buttonHeight * 3) - (vertBuffer * 3)),
                                buttonWidth,
                                buttonHeight);
+}
+
+
+void ChannelStrip::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    for (int i = 0; i < numClips; ++i)
+    {
+        if (source == &mClipButtons[i])
+        {
+            mSetSelectedClip(i);
+        }
+    }
 }
 
 
@@ -246,6 +264,36 @@ void ChannelStrip::mStopRecording()
 void ChannelStrip::mLoadClip()
 {
     
+}
+
+void ChannelStrip::mSetSelectedClip(int clipNum)
+{
+    for (int i = 0; i < numClips; ++i)
+    {
+        if (i == clipNum)
+        {
+            mClipButtons[i].setSelected(true);
+        }
+        else
+        {
+            mClipButtons[i].setSelected(false);
+        }
+    }
+}
+
+
+int ChannelStrip::mGetSelectedClip()
+{
+    int clipNum = 0;
+    
+    for (int i = 0; i < numClips; ++i)
+    {
+        if(mClipButtons[i].isSelected())
+        {
+            clipNum = i;
+        }
+    }
+    return clipNum;
 }
 
 

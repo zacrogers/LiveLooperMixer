@@ -16,7 +16,9 @@ namespace z_lib
 constexpr int numClips = 4;
 
 class ChannelStrip : public juce::AudioAppComponent,
-                     public juce::ChangeBroadcaster
+                     public juce::ChangeBroadcaster,
+                     public juce::ChangeListener
+
 {
 public:
     enum class State
@@ -29,6 +31,7 @@ public:
         PreparingToRecord
     };
 
+    ChannelStrip();
     ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
     ~ChannelStrip();
     
@@ -40,6 +43,11 @@ public:
     // Component methods
     void paint (juce::Graphics& g) override;
     void resized() override;
+    
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+    
+    void setDeviceManager();
+    void setRecorder();
     
     void play();
     void stop();
@@ -90,6 +98,9 @@ private:
     void mStartRecording(int channelNum, int clipNum);
     void mStopRecording();
     void mLoadClip();
+    
+    void mSetSelectedClip(int clipNum);
+    int mGetSelectedClip();
     
 };
 }

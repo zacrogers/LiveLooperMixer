@@ -39,7 +39,8 @@ public:
     void setEmpty(bool empty) { mClipEmpty = empty; }
     
     void setState(State state) { mState = state; }
-    bool isSelected();
+    void setSelected(bool selected) { mSelected = selected; }
+    bool isSelected() {return mSelected; }
     
     bool playing();
     bool recording();
