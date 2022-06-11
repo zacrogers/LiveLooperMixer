@@ -21,6 +21,12 @@ class ChannelStrip : public juce::AudioAppComponent,
 
 {
 public:
+    enum class Exception
+    {
+        RecorderNotInitialised = 0,
+        DeviceManagerNotInitialised
+    };
+    
     enum class State
     {
         Playing,
@@ -33,6 +39,7 @@ public:
 
     ChannelStrip();
     ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
+    ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder, int channelNum, int numClips=4);
     ~ChannelStrip();
     
     // Audio source methods
@@ -46,6 +53,8 @@ public:
     
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     
+    void init(const juce::AudioDeviceManager &deviceManager, Recorder &recorder, int channelNum, int numClips);
+    
     void setDeviceManager();
     void setRecorder();
     
@@ -53,54 +62,60 @@ public:
     void stop();
     void record();
     
-    State state() { return mState; }
+    void setArmed(bool armed);
+    
+    void prepareToRecord();
+    
+    State state() const { return mState; }
     
 private:
     // Member variables
-    State mState      { State::Stopped };
+    State mState          { State::Stopped };
 
-    bool mMuted       { false };
-    bool mRecordArmed { false };
+    bool mMuted           { false };
+    bool mRecordArmed     { false };
 
-    double mVolume    { 0 };
-    double mPan       { 0 };
+    double mVolume        { 0 };
+    double mPan           { 0 };
     
-    int mChannelNum   { 0 };
-    
+    int mChannelNum       { 0 };
+    int mClipSelected     { 0 };
     int mLastClipSelected { 0 };
     
-    juce::File mCurrentClip;
     juce::AudioDeviceManager *pDeviceManager;
-    Recorder *pRecorder;
-    
+    Recorder                 *pRecorder;
+
+    juce::File               mLastRecording;
+    juce::File               mCurrentClip;
     
     // Gui elements
-    juce::TextButton mRecordArmButton;
-    juce::TextButton mStopButton;
-    juce::TextButton mMuteButton;
+    juce::TextButton         mRecordArmButton { "R" };
+    juce::TextButton         mStopButton      { "S" };
+    juce::TextButton         mMuteButton      { "M" };
+    z_lib::ClipButton        mClipButtons[numClips];
     
-    z_lib::ClipButton mClipButtons[numClips];
-    
-    juce::Slider mVolumeSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::NoTextBox };
-    juce::Slider mPanSlider;
+    juce::Slider             mVolumeSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::NoTextBox };
+    juce::Slider             mPanSlider;
     
     // Member functions
     void mInitGuiElements();
     
-    void mChangeState();
+    void mChangeState(State state);
     
     void mRecordArmButtonClicked();
     void mStopButtonClicked();
     void mMuteButtonClicked();
+    void mClipClicked(int clipNum);
     
     void mStartPlaying(int clipNum);
     void mStopPlaying();
-    void mStartRecording(int channelNum, int clipNum);
+    void mStartRecording();
     void mStopRecording();
     void mLoadClip();
     
+    void setClipsColour();
     void mSetSelectedClip(int clipNum);
-    int mGetSelectedClip();
+    int  mGetSelectedClip();
     
 };
 }

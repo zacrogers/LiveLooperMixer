@@ -16,6 +16,12 @@ MainComponent::MainComponent()
 //        mClipButtons.add(std::unique_ptr<juce::TextButton*>());
 //    }
     
+    for (int channel = 0; channel < numChannels; ++channel)
+    {
+        mChannelStrips[channel].init(mAudioDeviceManager, mRecorder, channel, numClips);
+        mChannelStrips[channel].addChangeListener(this);
+    }
+    
     
 	initGuiElements();
 
@@ -23,7 +29,6 @@ MainComponent::MainComponent()
 	transportSource[0].addChangeListener(this);
 	transportSource[1].addChangeListener(this);
     
-    mChannelStrip.addChangeListener(this);
     
     juce::String filePath = juce::File::getSpecialLocation(juce::File::SpecialLocationType::currentExecutableFile).getFullPathName();
     mClipsPath = filePath + "/clips";
@@ -224,7 +229,12 @@ void MainComponent::initGuiElements()
     /** Other stuff */
     addAndMakeVisible(mMetronome);
     
-    addAndMakeVisible(mChannelStrip);
+//    addAndMakeVisible(mChannelStrip);
+    
+    for (int strip = 0; strip < numChannels; ++strip)
+    {
+        addAndMakeVisible(mChannelStrips[strip]);
+    }
 
 	setSize(900, 600);
 }
@@ -281,9 +291,19 @@ void MainComponent::resized()
     int sliderBuffer = 20;
     int csBuffer = 10;
     
+    int stripWidth = areaWidth / 12;
+    
     // Place items: left -> right, top -> bottom
     
-    mChannelStrip.setBounds(csBuffer, 0, areaWidth / 12, area.getHeight());
+//    mChannelStrip.setBounds(csBuffer, 0, areaWidth / 12, area.getHeight());
+    
+    for (int strip = 0; strip < numChannels; ++strip)
+    {
+        mChannelStrips[strip].setBounds((csBuffer + strip) + (stripWidth * strip),
+                                        0,
+                                        stripWidth,
+                                        area.getHeight());
+    }
     
 //    for (int chan = 0; chan < NUM_CHANNELS; ++chan)
 //    {
@@ -299,6 +319,9 @@ void MainComponent::resized()
     
     
     mMetronome.setBounds(areaWidth-metroWidth-5, 5, metroWidth, metroHeight);
+    
+    int transportWidth = area.getWidth()/3;
+    int transportHeight = area.getHeight()/3;
     
     // Button positions
     int tButtonX = areaWidth - buttonSize - btnBuffer; // Transport buttons x pos
@@ -317,14 +340,16 @@ void MainComponent::resized()
     mNumRecBarsSlider.setBounds(sliderX(3), tButtonY(0), 50, 250);
     
     
-    for(int i = 0; i < 4; ++i)
-    {
-        mClipButtons[i].setBounds(sliderX(4), i*50, 50, 50);
-    }
+//    for(int i = 0; i < 4; ++i)
+//    {
+//        mClipButtons[i].setBounds(sliderX(4), i*50, 50, 50);
+//    }
 }
 
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
+    DBG("Change listener");
+        
 	if (source == &transportSource[0])
 	{
 		if (transportSource[0].isPlaying())
@@ -337,35 +362,37 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 		}
 	}
     
-    if(source == &mChannelStrip)
+    for(int i = 0; i < numChannels; ++i)
     {
-        DBG("***** Channel strip callback *****");
-        if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToPlay)
+        if(source == &mChannelStrips[i])
         {
-            DBG("Preparing play");
+            DBG("***** Channel strip callback *****");
+            if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToPlay)
+            {
+                DBG("Preparing play:" << juce::String(i));
+            }
+            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToStop)
+            {
+                DBG("Preparing stop:" << juce::String(i));
+            }
+            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToRecord)
+            {
+                DBG("Preparing rec:" << juce::String(i));
+            }
+            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Stopped)
+            {
+                DBG("Stopped:" << juce::String(i));
+            }
+            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Playing)
+            {
+                DBG("Playing:" << juce::String(i));
+            }
+            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Recording)
+            {
+                DBG("Recording:" << juce::String(i));
+            }
+            DBG("*******************");
         }
-        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToStop)
-        {
-            DBG("Preparing stop");
-        }
-        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::PreparingToRecord)
-        {
-            DBG("Preparing rec");
-        }
-        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::Stopped)
-        {
-            DBG("Stopped");
-        }
-        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::Playing)
-        {
-            DBG("Playing");
-        }
-        else if(mChannelStrip.state() == z_lib::ChannelStrip::State::Recording)
-        {
-            DBG("Recording");
-        }
-        DBG("*******************");
-
     }
 }
 
@@ -387,6 +414,14 @@ void MainComponent::mStopPlaying()
 //    if (mRecorder.isRecording())
 //    {
 //    }
+    
+    for(int i = 0; i < numChannels; ++i)
+    {
+        if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Stopped)
+        {
+            mChannelStrips[i].stop();
+        }
+    }
     
     mStopRecording();
     stopTimer();
@@ -460,6 +495,13 @@ void MainComponent::mStopRecording()
     mLastRecording = juce::File();
     
     DBG("Stopped recording");
+}
+
+
+
+void MainComponent::mCheckOneChannelArmed()
+{
+    
 }
 
 void MainComponent::changeState(TransportState newState)
@@ -593,6 +635,15 @@ void MainComponent::stopBtnClicked()
 void MainComponent::mHandleClipButton(int channelNum, int clipNum)
 {
     
+    
+}
+
+void MainComponent::mHandleRecordArmButton()
+{
+    for (int chan = 0; chan < numChannels; ++chan)
+    {
+//        <#statements#>
+    }
     
 }
 

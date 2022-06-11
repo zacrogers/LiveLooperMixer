@@ -38,7 +38,7 @@ public:
     void stop(void);
     void setEmpty(bool empty) { mClipEmpty = empty; }
     
-    void setState(State state) { mState = state; }
+    void setState(State state) { mState = state; mSetColour(); }
     void setSelected(bool selected) { mSelected = selected; }
     bool isSelected() {return mSelected; }
     

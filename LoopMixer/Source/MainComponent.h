@@ -13,7 +13,7 @@
 #define NUM_CHANNELS 6
 
 constexpr int numClips    = 4;
-constexpr int numChannels = 4;
+constexpr int numChannels = 2;
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -46,11 +46,11 @@ private:
     const int mMinRecordBars { 1 };
     const int mMaxRecordBars { 8 };
     
-    int mBarsToRecord { 4 };
-    bool mRecordArmed { false };
-    bool mInputMuted { false };
+    int mBarsToRecord        { 4 };
+    bool mRecordArmed        { false };
+    bool mInputMuted         { false };
     
-    int mLastPlayedIndex { 0 };
+    int mLastPlayedIndex     { 0 };
     
     juce::Colour     mDisabledColour  { juce::Colours::darkslateblue };
     
@@ -84,6 +84,8 @@ private:
     z_lib::Recorder mRecorder;
     z_lib::ChannelStrip mChannelStrip { mAudioDeviceManager, mRecorder };
     
+    z_lib::ChannelStrip mChannelStrips[numChannels];
+    
     void mChangeState();
     
     void mStartPlaying();
@@ -98,11 +100,14 @@ private:
     bool mClipPlaying[numClips]   = { false, false, false, false };
     
     void mHandleClipButton(int channelNum, int clipNum);
+    void mHandleRecordArmButton();
     void mRecordClip(int channelNum, int clipNum);
     void mPlayClip(int channelNum, int clipNum);
     void mStopClip(int channelNum, int clipNum);
     void mStopRecordClip(int channelNum, int clipNum);
     void mLoadClip(int channelNum, int clipNum);
+    
+    void mCheckOneChannelArmed();
     
     
     

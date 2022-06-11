@@ -28,7 +28,7 @@ VisualMetronome::VisualMetronome(bool externallyTriggered, Orientation orientati
     
     /** Sliders */
     addAndMakeVisible(&mBpmSlider);
-    mBpmSlider.setRange(mBpmMin, mBpmMax);
+    mBpmSlider.setRange(mBpmMin, mBpmMax, 1);
     mBpmSlider.setValue(120.0);
     mBpmSlider.onValueChange = [this]()
     {
