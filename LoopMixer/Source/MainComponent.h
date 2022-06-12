@@ -60,7 +60,7 @@ private:
     juce::TextButton mArmRecordButton { "R" };
     juce::TextButton mInputMuteButton { "M" };
     
-    juce::TextButton mClipButtons[numClips];
+//    juce::TextButton mClipButtons[numClips];
     
     // Sliders
     juce::Slider     mInputTrimSlider  { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::TextBoxAbove };

@@ -39,8 +39,8 @@ public:
     void setEmpty(bool empty) { mClipEmpty = empty; }
     
     void setState(State state) { mState = state; mSetColour(); }
-    void setSelected(bool selected) { mSelected = selected; }
-    bool isSelected() {return mSelected; }
+    void setSelected(bool selected) { mSelected = selected; mSetColour(); }
+    bool isSelected() const {return mSelected; }
     
     bool playing();
     bool recording();

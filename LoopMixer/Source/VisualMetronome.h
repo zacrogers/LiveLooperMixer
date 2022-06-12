@@ -59,7 +59,7 @@ public:
     
 private:
     /* Variables */
-    bool mEnabled             { false };
+    bool mEnabled             { true };
     bool mExternalTrigger     { false };
     bool mCountInEnabled      { false };
     bool mCountingIn          { false };

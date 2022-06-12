@@ -64,7 +64,6 @@ void ChannelStrip::paint (juce::Graphics& g)
 }
  
 
-
 void ChannelStrip::resized()
 {
     auto area = getLocalBounds();
@@ -154,16 +153,36 @@ void ChannelStrip::setArmed(bool armed)
 {
     mRecordArmed = armed;
     
-    if(mRecordArmed)
+    if (mRecordArmed)
     {
-        mState = State::PreparingToRecord;
-        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+        if(State::Stopped         == mState ||
+           State::Playing         == mState ||
+           State::PreparingToStop == mState ||
+           State::PreparingToPlay == mState)
+        {
+            mChangeState(State::PreparingToRecord);
+        }
     }
     else
     {
-        mState = State::Stopped;
-        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+        if(State::Recording == mState ||
+           State::PreparingToRecord == mState)
+        {
+            mChangeState(State::PreparingToStop);
+        }
     }
+    
+    
+//    if(mRecordArmed)
+//    {
+//        mState = State::PreparingToRecord;
+//        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+//    }
+//    else
+//    {
+//        mState = State::Stopped;
+//        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+//    }
 }
 
 
@@ -235,23 +254,32 @@ void ChannelStrip::mChangeState(State state)
         switch (mState)
         {
             case State::Playing:
-                mStopButton.setEnabled(true);
+                setPlayingState();
+//                mStopButton.setEnabled(true);
                 break;
                 
             case State::Stopped:
-                mStopButton.setEnabled(false);
+                setStoppedState();
+//                mStopButton.setEnabled(false);
                 break;
                 
             case State::Recording:
-                mStopButton.setEnabled(true);
+                setRecordingState();
+//                mStopButton.setEnabled(true);
                 break;
                 
             case State::PreparingToPlay:
-                mStopButton.setEnabled(true);
+                setP2PlayState();
+//                mStopButton.setEnabled(true);
                 break;
                 
             case State::PreparingToStop:
-                mStopButton.setEnabled(false);
+                setP2StopState();
+//                mStopButton.setEnabled(false);
+                break;
+                
+            case State::PreparingToRecord:
+                setP2RecordState();
                 break;
                 
             default:
@@ -440,6 +468,7 @@ void ChannelStrip::setClipsColour()
     
 }
 
+
 void ChannelStrip::mSetSelectedClip(int clipNum)
 {
     for (int i = 0; i < numClips; ++i)
@@ -468,6 +497,47 @@ int ChannelStrip::mGetSelectedClip()
         }
     }
     return clipNum;
+}
+
+void ChannelStrip::setPlayingState()
+{
+    mStopButton.setEnabled(true);
+    mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+}
+
+
+void ChannelStrip::setRecordingState()
+{
+    mStopButton.setEnabled(true);
+    mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+}
+
+
+void ChannelStrip::setStoppedState()
+{
+    mStopButton.setEnabled(false);
+    mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+}
+
+
+void ChannelStrip::setP2PlayState()
+{
+    mStopButton.setEnabled(true);
+    mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+}
+
+
+void ChannelStrip::setP2RecordState()
+{
+    mStopButton.setEnabled(true);
+    mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+}
+
+
+void ChannelStrip::setP2StopState()
+{
+    mStopButton.setEnabled(false);
+    mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
 }
 
 

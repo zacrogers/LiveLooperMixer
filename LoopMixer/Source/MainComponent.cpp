@@ -32,6 +32,7 @@ MainComponent::MainComponent()
     
     juce::String filePath = juce::File::getSpecialLocation(juce::File::SpecialLocationType::currentExecutableFile).getFullPathName();
     mClipsPath = filePath + "/clips";
+    
 
 //	basePath = getExePath();
        
@@ -101,15 +102,15 @@ void MainComponent::initGuiElements()
     
     int channel = 1;
     
-    for(int clip = 0; clip < 4; ++clip)
-    {
-        addAndMakeVisible(mClipButtons[clip]);
-        mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-        mClipButtons[clip].onClick = [this, channel, clip] ()
-        {
-            mHandleClipButton(channel, clip);
-        };
-    }
+//    for(int clip = 0; clip < 4; ++clip)
+//    {
+//        addAndMakeVisible(mClipButtons[clip]);
+//        mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+////        mClipButtons[clip].onClick = [this, channel, clip] ()
+////        {
+////            mHandleClipButton(channel, clip);
+////        };
+//    }
     
     
 //	addAndMakeVisible(&loadButton);
@@ -156,14 +157,14 @@ void MainComponent::initGuiElements()
             
             for(int i = 0; i < numClips; ++i)
             {
-                if(mClipEmpty[i])
-                {
-                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-                }
-                else
-                {
-                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-                }
+//                if(mClipEmpty[i])
+//                {
+//                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+//                }
+//                else
+//                {
+//                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+//                }
             }
         }
         else{
@@ -171,14 +172,14 @@ void MainComponent::initGuiElements()
     
             for(int i = 0; i < numClips; ++i)
             {
-                if(mClipEmpty[i])
-                {
-                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::blue );
-                }
-                else
-                {
-                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-                }
+//                if(mClipEmpty[i])
+//                {
+//                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::blue );
+//                }
+//                else
+//                {
+//                    mClipButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+//                }
             }
         }
     };
@@ -367,6 +368,17 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
         if(source == &mChannelStrips[i])
         {
             DBG("***** Channel strip callback *****");
+            if(mChannelStrips[i].isArmed())
+            {
+                for(int j = 0; j < numChannels; ++j)
+                {
+                    if(i != j)
+                    {
+                        mChannelStrips[j].setArmed(false);
+                    }
+                }
+            }
+            
             if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToPlay)
             {
                 DBG("Preparing play:" << juce::String(i));
