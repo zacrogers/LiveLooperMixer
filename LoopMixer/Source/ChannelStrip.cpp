@@ -36,24 +36,6 @@ ChannelStrip::~ChannelStrip()
 }
 
 
-void ChannelStrip::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
-{
-    
-}
-
-
-void ChannelStrip::releaseResources()
-{
-    
-}
-
-
-void ChannelStrip::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
-{
-    
-}
-
-
 void ChannelStrip::paint (juce::Graphics& g)
 {
     g.fillAll(juce::Colours::darkblue);
@@ -100,9 +82,18 @@ void ChannelStrip::resized()
                          buttonHeight);
 }
 
-void ChannelStrip::init(const juce::AudioDeviceManager &deviceManager, z_lib::Recorder &recorder, int channelNum, int numClips)
+void ChannelStrip::init(const juce::AudioDeviceManager *deviceManager, z_lib::Recorder *recorder)
 {
+    pDeviceManager = deviceManager;
+    pRecorder = recorder;
     
+    for (int i = 0; i < numClips; ++i)
+    {
+        mClipButtons[i].addChangeListener(this);
+        mClipButtons[i].onClick = [this, i] () { mClipClicked(i); };
+    }
+    
+    mInitGuiElements();
 }
 
 
@@ -143,46 +134,10 @@ void ChannelStrip::record()
     if(mState == State::PreparingToRecord)
     {
         // set clip num
+        mClipSelected = 0;
         mStartRecording();
         mState = State::Recording;
     }
-}
-
-
-void ChannelStrip::setArmed(bool armed)
-{
-    mRecordArmed = armed;
-    
-    if (mRecordArmed)
-    {
-        if(State::Stopped         == mState ||
-           State::Playing         == mState ||
-           State::PreparingToStop == mState ||
-           State::PreparingToPlay == mState)
-        {
-            mChangeState(State::PreparingToRecord);
-        }
-    }
-    else
-    {
-        if(State::Recording == mState ||
-           State::PreparingToRecord == mState)
-        {
-            mChangeState(State::PreparingToStop);
-        }
-    }
-    
-    
-//    if(mRecordArmed)
-//    {
-//        mState = State::PreparingToRecord;
-//        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-//    }
-//    else
-//    {
-//        mState = State::Stopped;
-//        mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
-//    }
 }
 
 
@@ -233,10 +188,12 @@ void ChannelStrip::mInitGuiElements()
     
     /** Sliders */
     addAndMakeVisible(mVolumeSlider);
+    mVolumeSlider.setRange(0, 1);
     mVolumeSlider.setValue(mVolume);
     mVolumeSlider.onValueChange = [this] ()
     {
         mVolume = mVolumeSlider.getValue();
+        mAudioClip.setGain(mVolume);
     };
     
     setSize(10, 600);
@@ -309,10 +266,12 @@ void ChannelStrip::mRecordArmButtonClicked()
         mRecordArmed = true;
     }
     
-//    DBG("Rec : Record armed: " << (mRecordArmed ? "true" : "false"));
+    mSetUnselectedClips();
+    
+    DBG("Rec : Record armed: " << (mRecordArmed ? "true" : "false"));
 //    DBG("Rec : State:" << juce::String(static_cast<int>(mState)));
     
-    setClipsColour();
+//    setClipsColour();
 }
 
 
@@ -354,12 +313,30 @@ void ChannelStrip::mMuteButtonClicked()
 void ChannelStrip::mClipClicked(int clipNum)
 {
     mClipSelected = clipNum;
+    mSetSelectedClip(mClipSelected);
+    mSetUnselectedClips();
     sendChangeMessage();
 }
 
+void ChannelStrip::mRefreshClipStates()
+{
+    // check if clips are empty
+}
 
 void ChannelStrip::mStartPlaying(int clipNum)
 {
+    if(State::Playing == mState)
+    {
+        if(mAudioClip.isLoaded())
+        {
+            mAudioClip.start();
+        }
+    }
+    else if (State::Recording == mState)
+    {
+        mAudioClip.stop();
+        mStartRecording();
+    }
     sendChangeMessage();
 }
 
@@ -389,56 +366,41 @@ void ChannelStrip::mStartRecording()
         return;
     }
 
-    auto parentDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
-
-    mLastRecording = parentDir.getNonexistentChildFile("CHANNEL_" + juce::String(mChannelNum) + "_" + juce::String(mClipSelected), ".wav");
+    auto fname = mClipPath(mClipSelected);
+    
+//    DBG("START REC: "<< fname);
+//
+    juce::File file = juce::File(fname);
+    file.deleteFile();
+//    auto parentDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
+//    mLastRecording = parentDir.getNonexistentChildFile("PoopMixerFile", ".wav");
+    
+    mLastRecording = juce::File(fname);
 
     DBG("START: " << mLastRecording.getFullPathName());
 
     pRecorder->startRecording(mLastRecording);
 }
 
-//void MainComponent::mStartRecording()
-//{
-//    if (! juce::RuntimePermissions::isGranted(juce::RuntimePermissions::writeExternalStorage))
-//    {
-//        SafePointer<MainComponent> safeThis (this);
-//
-//        juce::RuntimePermissions::request(juce::RuntimePermissions::writeExternalStorage,
-//                                          [safeThis] (bool granted) mutable {
-//            if (granted)
-//            {
-//                safeThis->mStartRecording();
-//            }
-//        });
-//
-//        return;
-//    }
-//
-//    auto parentDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
-//
-//    mLastRecording = parentDir.getNonexistentChildFile("LoopMixerFile", ".wav");
-//
-//    DBG("START: " << mLastRecording.getFullPathName());
-//
-//    mRecorder.startRecording(mLastRecording);
-//}
-
 
 void ChannelStrip::mStopRecording()
 {
+    pRecorder->stopRecording();
+    mLoadClip(mClipSelected);
+    mLastRecording = juce::File();
     sendChangeMessage();
 }
 
 
-void ChannelStrip::mLoadClip()
+void ChannelStrip::mLoadClip(juce::uint8 clip)
 {
-    
+    mAudioClip.load(juce::File(mClipPath(clip)));
 }
 
 
 void ChannelStrip::setClipsColour()
 {
+    DBG("State:" << static_cast<int>(mState));
     for(int i = 0; i < numClips; ++i)
     {
         if (mMuted)
@@ -465,23 +427,67 @@ void ChannelStrip::setClipsColour()
             }
         }
     }
-    
 }
 
 
 void ChannelStrip::mSetSelectedClip(int clipNum)
 {
+    ClipButton *pClip = &mClipButtons[clipNum];
+    
+    switch (mState) {
+        case State::PreparingToPlay:
+        {
+            if(mClipExists(clipNum))
+            {
+                pClip->setState(ClipButton::State::PreparingToPlay);
+            }
+            else
+            {
+                pClip->setState(ClipButton::State::Empty);
+            }
+            break;
+        }
+        case State::Playing:           pClip->setState(ClipButton::State::Playing);
+        case State::Recording:         pClip->setState(ClipButton::State::Recording);
+        case State::PreparingToRecord: pClip->setState(ClipButton::State::PreparingToRecord);
+        case State::PreparingToStop:   pClip->setState(ClipButton::State::PreparingToStop);
+            
+        default: break;
+    }
+    
+    
     for (int i = 0; i < numClips; ++i)
     {
-        if (i == clipNum)
+        mClipButtons[i].setSelected(false);
+    }
+    pClip->setSelected(true);
+}
+
+
+// should always be called after mSetSelectedClip
+void ChannelStrip::mSetUnselectedClips()
+{
+    for(juce::uint8 i = 0; i < numClips; ++i)
+    {
+        if(mClipButtons[i].isSelected())
         {
-            mClipButtons[i].setSelected(true);
-        }
-        else
-        {
-            mClipButtons[i].setSelected(false);
+            if(mClipExists(i))
+            {
+                mClipButtons[i].setState(ClipButton::State::Stopped);
+            }
+            else
+            {
+                mClipButtons[i].setState(ClipButton::State::Empty);
+            }
         }
     }
+}
+
+bool ChannelStrip::mClipExists(juce::uint8 clipNum)
+{
+    DBG("*****\n\n " << mClipPath(clipNum));
+    auto file = juce::File(mClipPath(clipNum));
+    return file.exists();
 }
 
 
@@ -494,6 +500,7 @@ int ChannelStrip::mGetSelectedClip()
         if(mClipButtons[i].isSelected())
         {
             clipNum = i;
+            break;
         }
     }
     return clipNum;
@@ -503,6 +510,9 @@ void ChannelStrip::setPlayingState()
 {
     mStopButton.setEnabled(true);
     mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+    
+    mSetSelectedClip(mClipSelected);
+    //mSetUnselectedClip(mClipSelected);
 }
 
 

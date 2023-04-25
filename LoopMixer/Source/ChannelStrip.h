@@ -1,12 +1,13 @@
 #pragma once
 #include <JuceHeader.h>
 #include <string.h>
-//#include <windows.h>
+#include <cstdint>
 
 #include "myEnums.h"
-//#include "AudioRecorder.h"
 #include "ClipButton.h"
 #include "Recorder.h"
+#include "AudioClip.h"
+
 
 #define NUM_CLIPS 2
 #define MAX_PATH 50
@@ -15,7 +16,8 @@ namespace z_lib
 {
 constexpr int numClips = 4;
 
-class ChannelStrip : public juce::AudioAppComponent,
+
+class ChannelStrip : public juce::Component,
                      public juce::ChangeBroadcaster,
                      public juce::ChangeListener
 
@@ -36,16 +38,18 @@ public:
         PreparingToStop,
         PreparingToRecord
     };
+    
+    struct Snapshot
+    {
+        std::uint8_t currentClip;
+        std::uint8_t nextClip;
+        State        state;
+    };
 
     ChannelStrip();
+    ChannelStrip(juce::AudioDeviceManager &deviceManager);
     ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
-    ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder, int channelNum, int numClips=4);
     ~ChannelStrip();
-    
-    // Audio source methods
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void releaseResources() override;
-    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     
     // Component methods
     void paint (juce::Graphics& g) override;
@@ -53,7 +57,7 @@ public:
     
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     
-    void init(const juce::AudioDeviceManager &deviceManager, Recorder &recorder, int channelNum, int numClips);
+    void init(const juce::AudioDeviceManager *deviceManager, Recorder *recorder);
     
     void setDeviceManager();
     void setRecorder();
@@ -62,28 +66,45 @@ public:
     void stop();
     void record();
     
+    void setState(State state) { mChangeState(state); }
+    
     void setArmed(bool armed);
     bool isArmed() const { return mRecordArmed; }
     
+    struct Snapshot snapshot() const { return mSnapshot; };
+    
     void prepareToRecord();
+    // needs to be called if project is reloaded because the project id will change
+    // TODO: find a better way to manage the file paths/locations
+    void updateClipsPath(juce::String path) { mClipsPath = path; DBG("Clips path: " << path);};
     
     State state() const { return mState; }
     
+    AudioClip *pAudioClip() { return &mAudioClip; };
+    
 private:
+    AudioClip mAudioClip;
+    juce::String mClipsPath;
+    
+    juce::String mClipPath(juce::uint8 clip) const { return mClipsPath + "clip_" + juce::String(clip) + ".wav"; }
+    
+    
     // Member variables
     State mState          { State::Stopped };
+    
+    struct Snapshot mSnapshot = { 0 };
 
     bool mMuted           { false };
+    bool mSoloed           { false };
     bool mRecordArmed     { false };
 
     double mVolume        { 0 };
     double mPan           { 0 };
     
-    int mChannelNum       { 0 };
     int mClipSelected     { 0 };
     int mLastClipSelected { 0 };
     
-    juce::AudioDeviceManager *pDeviceManager;
+    const juce::AudioDeviceManager *pDeviceManager;
     Recorder                 *pRecorder;
 
     juce::File               mLastRecording;
@@ -112,11 +133,15 @@ private:
     void mStopPlaying();
     void mStartRecording();
     void mStopRecording();
-    void mLoadClip();
+    void mLoadClip(juce::uint8 clip);
     
+    // clip functions
     void setClipsColour();
     void mSetSelectedClip(int clipNum);
+    void mSetUnselectedClips();
     int  mGetSelectedClip();
+    void mRefreshClipStates();
+    bool mClipExists(juce::uint8 clipNum);
     
     // Gui state setters
     void setPlayingState();
@@ -128,68 +153,3 @@ private:
     
 };
 } //z_lib
-
-//class ChannelStrip : public juce::Component
-//{
-//public:
-//	//==============================================================================
-//	ChannelStrip();
-//	~ChannelStrip();
-//
-//	/* Component methods */
-//	void paint(juce::Graphics&) override;
-//	void resized() override;
-//
-//	/* Channelstrip methods */
-//	void changeState(TransportState newState);
-//	void addToMixer(juce::MixerAudioSource* mixer);
-//
-//    juce::AudioTransportSource getTransport();
-//
-//	void setChannelNum(int num) { channelNum = num; };
-//
-//	/* Gui elements */
-//    juce::TextButton stopBtn;
-//    juce::TextButton muteBtn;
-//    juce::TextButton recBtn;
-//    juce::TextButton soloBtn;
-//
-//    juce::TextButton clipBtns[NUM_CLIPS];
-//
-//    juce::Slider     volumeSlider;
-//    juce::Slider     filterKnob;
-//
-//private:
-//	TransportState state;
-//
-//    juce::AudioFormatManager formatManager;
-//	std::unique_ptr<juce::AudioFormatReaderSource> readerSource[NUM_CLIPS];
-//    juce::AudioTransportSource transportSource[NUM_CLIPS];
-//
-//	int channelNum = 0;
-//	std::string basePath = "";
-//
-//	int currentClip = 0;
-//	float gain = 0.0;
-//
-//	bool isPlaying = false;
-//	bool isMuted   = false;
-//	bool isSoloed  = false;
-//	bool isArmed   = false;
-//
-//	void initGuiElements();
-//
-//	void loadClip(int slot, std::string clipName);
-//
-//	void clipBtnClicked(int clip);
-//	void stopBtnClicked();
-//	void muteBtnClicked();
-//	void soloBtnClicked();
-//	void recBtnClicked();
-//
-//	void recordClip();
-//
-//	std::string getBasePath();
-//
-//	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChannelStrip)
-//};

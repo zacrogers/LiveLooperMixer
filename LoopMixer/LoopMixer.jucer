@@ -4,6 +4,9 @@
               jucerFormatVersion="1" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="OVQGhd" name="LoopMixer">
     <GROUP id="{BB76F3E3-8B18-E27E-6826-3B5C65F9AA8C}" name="Source">
+      <FILE id="UojhT5" name="CompileFlags.h" compile="0" resource="0" file="Source/CompileFlags.h"/>
+      <FILE id="eUP7Gl" name="AudioClip.cpp" compile="1" resource="0" file="Source/AudioClip.cpp"/>
+      <FILE id="fJGswM" name="AudioClip.h" compile="0" resource="0" file="Source/AudioClip.h"/>
       <FILE id="WSL4rf" name="Exceptions.h" compile="0" resource="0" file="Source/Exceptions.h"/>
       <FILE id="JbFldj" name="AudioThru.cpp" compile="1" resource="0" file="Source/AudioThru.cpp"/>
       <FILE id="ZWuXU3" name="AudioThru.h" compile="0" resource="0" file="Source/AudioThru.h"/>

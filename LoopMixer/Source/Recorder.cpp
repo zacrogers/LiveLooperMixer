@@ -23,7 +23,7 @@ Recorder::~Recorder()
 {
     stopRecording();
 }
-
+            
 
 void Recorder::audioDeviceAboutToStart (juce::AudioIODevice* device)
 {

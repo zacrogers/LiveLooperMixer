@@ -27,7 +27,9 @@ public:
         Muted,
         Empty,
         PreparingToPlay,
-        PreparingToRecord
+        PreparingToRecord,
+        Stopped,
+        PreparingToStop
     };
     
     ClipButton();
