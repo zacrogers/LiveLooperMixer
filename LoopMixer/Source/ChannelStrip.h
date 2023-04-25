@@ -46,22 +46,25 @@ public:
         State        state;
     };
 
-    ChannelStrip();
-    ChannelStrip(juce::AudioDeviceManager &deviceManager);
-    ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
-    ~ChannelStrip();
-    
     // Component methods
     void paint (juce::Graphics& g) override;
     void resized() override;
     
+    // Change Listener
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+    
+    // Channel Strip
+    ChannelStrip();
+    ChannelStrip(juce::AudioDeviceManager &deviceManager);
+    ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
+    ~ChannelStrip();
     
     void init(const juce::AudioDeviceManager *deviceManager, Recorder *recorder);
     
     void setDeviceManager();
     void setRecorder();
     
+    /** These should be used for external control */
     void play();
     void stop();
     void record();
@@ -95,7 +98,7 @@ private:
     struct Snapshot mSnapshot = { 0 };
 
     bool mMuted           { false };
-    bool mSoloed           { false };
+    bool mSoloed          { false };
     bool mRecordArmed     { false };
 
     double mVolume        { 0 };
@@ -129,7 +132,7 @@ private:
     void mMuteButtonClicked();
     void mClipClicked(int clipNum);
     
-    void mStartPlaying(int clipNum);
+    void mStartPlaying(juce::uint8 clipNum);
     void mStopPlaying();
     void mStartRecording();
     void mStopRecording();

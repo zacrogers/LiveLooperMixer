@@ -10,7 +10,6 @@
 #include "AudioThru.h"
 #include "Recorder.h"
 #include "VisualMetronome.h"
-#include "myEnums.h"
 
 #define NUM_CHANNELS 6
 
@@ -43,6 +42,15 @@ public:
 
 
 private:
+    enum class State
+    {
+        Playing,
+        Recording,
+        Stopped,
+        PreparingToPlay,
+        PreparingToStop,
+        PreparingToRecord
+    };
     /** Gui Elements */
     // Colors
     juce::Colour             mDisabledColour   { juce::Colours::darkslateblue };
@@ -79,7 +87,7 @@ private:
     bool                     mRecordArmed      { false };
     bool                     mInputMuted       { false };
     int                      mLastPlayedIndex  { 0 };
-    TransportState           state;
+    State                    mState;
     
     juce::Uuid               mCurrentProjectId;
     juce::String             mProjectsPath;
@@ -98,11 +106,19 @@ private:
     
     /** Member Functions */
     void         mInitGuiElements      ();
-    void         mChangeState          (TransportState newState);
+    void         mChangeState          (State newState);
     bool         mPeriodEnded          ();
     juce::String mChannelPath          (juce::uint8 channel) const;
     
-    // Button callbacks
+    /** States : These implement all of the the state functionality **/
+    void        mStatePlaying          ();
+    void        mStateRecording        ();
+    void        mStateStopped          ();
+    void        mStatePrep2Play        ();
+    void        mStatePrep2Stop        ();
+    void        mStatePrep2Record      ();
+
+    /** Button callbacks : Change state based on current state */
     void         mPlayButtonClicked    ();
     void         mStopButtonClicked    ();
     void         mRecordButtonClicked  ();

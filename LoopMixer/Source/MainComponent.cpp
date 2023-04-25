@@ -51,14 +51,16 @@ MainComponent::~MainComponent()
 }
 
 
-/** AudioAppComponent Overrides */
-void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+/**************************************
+======== AudioAppComponent Overrides ========
+*************************************************************/
+void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     mMixer.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 
-void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
+void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
 //    if (mInputMuted)
 //    {
@@ -77,6 +79,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     mMixer.getNextAudioBlock(bufferToFill);
 }
 
+
 void MainComponent::releaseResources()
 {
     // This will be called when the audio device stops, or when it is being
@@ -86,10 +89,11 @@ void MainComponent::releaseResources()
 }
 
 
-void MainComponent::paint (juce::Graphics& g)
+void MainComponent::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colours::darkblue);
 }
+
 
 void MainComponent::resized()
 {
@@ -136,7 +140,9 @@ void MainComponent::resized()
 }
 
 
-/** ChangeListener Override */
+/***********************************
+========= ChangeListener Override =========
+*********************************************************/
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     DBG("Change listener");
@@ -176,9 +182,12 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 }
 
 
-/** Timer Override */
+/********************************
+===========  Timer Override ===========
+***************************************************/
 void MainComponent::timerCallback()
 {
+    
     if (mRecorder.isRecording() && !mMetronome.countingIn())
     {
         for(juce::uint8 i = 0; i < numChannels; ++i)
@@ -232,20 +241,12 @@ void MainComponent::timerCallback()
 
         }
     }
-//    for (auto &source : transportSource)
-//    {
-//        if (source.isPlaying())
-//        {
-//            source.stop();
-//            source.setPosition(0.0);
-//        }
-//        source.start();
-//    }
 }
 
 
-
-/** Member Functions */
+/********************************
+========== Member Functions ==========
+*****************************************************/
 void MainComponent::mInitGuiElements()
 {
     /** Buttons */
@@ -304,32 +305,32 @@ void MainComponent::mInitGuiElements()
 }
 
 
-void MainComponent::mChangeState(TransportState newState)
+void MainComponent::mChangeState(State newState)
 {
-    if (state != newState)
+    if (mState != newState)
     {
-        state = newState;
+        mState = newState;
 
-        switch (state)
+        switch (mState)
         {
-        case TransportState::STOPPED:
-            mStopButton.setEnabled(false);
-            mPlayButton.setEnabled(true);
-
-            break;
-
-        case TransportState::STARTING:
-            mPlayButton.setEnabled(false);
-            
-            break;
-
-        case TransportState::PLAYING:
-            mStopButton.setEnabled(true);
-            break;
-
-        case TransportState::STOPPING:
-
-            break;
+            case State::Playing:
+                mStatePlaying();
+                break;
+            case State::Recording:
+                mStateRecording();
+                break;
+            case State::Stopped:
+                mStateStopped();
+                break;
+            case State::PreparingToPlay:
+                mStatePrep2Play();
+                break;
+            case State::PreparingToStop:
+                mStatePrep2Stop();
+                break;
+            case State::PreparingToRecord:
+                mStatePrep2Record();
+                break;
         }
     }
 }
@@ -355,17 +356,18 @@ juce::String MainComponent::mChannelPath(juce::uint8 channel) const
 }
 
 
-/** Button Callbacks */
-void MainComponent::mPlayButtonClicked()
+/*********************************
+============ State Functions ===========
+*****************************************************/
+void MainComponent::mStatePlaying()
 {
-    for(juce::uint8 i = 0; i < numChannels; ++i)
+    for(juce::uint8 channel = 0; channel < numChannels; ++channel)
     {
-        mChannelStrips[i].play();
+        mChannelStrips[channel].play();
     }
+    
     startTimer(2400);
 
-    mChangeState(TransportState::STARTING);
-    
     if (mMetronome.isEnabled())
     {
         mMetronome.start();
@@ -377,19 +379,38 @@ void MainComponent::mPlayButtonClicked()
 }
 
 
-void MainComponent::mStopButtonClicked()
+void MainComponent::mStateRecording()
 {
-    mChangeState(TransportState::STOPPING);
+    for(juce::uint8 channel = 0; channel < numChannels; ++channel)
+    {
+        if(mChannelStrips[channel].isArmed())
+        {
+            mChannelStrips[channel].record();
+            break;
+        }
+    }
+    
+    startTimer(2400);
+
+    if (mMetronome.isEnabled())
+    {
+        mMetronome.start();
+        startTimer(mMetronome.getIntervalMs());
+        mPlayButton.setEnabled(false);
+        mStopButton.setEnabled(true);
+        mArmRecordButton.setEnabled(false);
+    }
+}
+
+
+void MainComponent::mStateStopped()
+{
     stopTimer();
     for(int i = 0; i < numChannels; ++i)
     {
-//        if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Stopped)
-//        {
-            mChannelStrips[i].stop();
-//        }
+        mChannelStrips[i].stop();
     }
 
-    stopTimer();
     mMetronome.resetStep();
     mMetronome.stop();
     mPlayButton.setEnabled(true);
@@ -397,9 +418,73 @@ void MainComponent::mStopButtonClicked()
 }
 
 
+void MainComponent::mStatePrep2Play()
+{
+    
+}
+
+
+void MainComponent::mStatePrep2Stop()
+{
+    
+}
+
+
+void MainComponent::mStatePrep2Record()
+{
+    
+}
+
+
+/*******************************
+************* * Button Callbacks *************
+************************************************/
+void MainComponent::mPlayButtonClicked()
+{
+    if(State::Recording         == mState ||
+       State::Stopped           == mState ||
+       State::PreparingToRecord == mState)
+    {
+        mChangeState(State::PreparingToPlay);
+    }
+    else if(State::PreparingToStop == mState)
+    {
+        mChangeState(State::Playing);
+    }
+}
+
+
+void MainComponent::mStopButtonClicked()
+{
+    if(State::Playing == mState || State::Recording == mState)
+    {
+        mChangeState(State::PreparingToStop);
+    }
+    else if(State::PreparingToPlay   == mState ||
+       State::PreparingToStop   == mState ||
+       State::PreparingToRecord == mState)
+    {
+        mChangeState(State::Stopped);
+    }
+
+}
+
+
 void MainComponent::mRecordButtonClicked()
 {
-    mRecordArmed = !mRecordArmed;
+    if(State::Recording == mState)
+    {
+        mChangeState(State::PreparingToPlay);
+    }
+    else if(State::PreparingToPlay == mState)
+    {
+        mChangeState(State::PreparingToRecord);
+    }
+    else if(State::Stopped == mState)
+    {
+        mRecordArmed = !mRecordArmed;
+    }
+    
     
     if(mRecordArmed)
     {
@@ -434,7 +519,9 @@ void MainComponent::mMuteButtonClicked()
 }
 
 
-// Slider Callbacks
+/***************************
+======== Slider Callbacks ========
+*******************************************/
 void MainComponent::mInputTrimChanged()
 {
     

@@ -113,19 +113,23 @@ void ChannelStrip::play()
 {
     if (mState == State::Stopped || mState == State::PreparingToPlay)
     {   
-        mStartPlaying(mLastClipSelected);
         mState = State::Playing;
+        mStartPlaying(mLastClipSelected);
     }
 }
 
 
 void ChannelStrip::stop()
 {
-//    if (mState == State::Playing || mState == State::PreparingToStop)
-//    {
+    if (State::PreparingToRecord == mState || State::PreparingToStop == mState)
+    {
         mStopPlaying();
         mChangeState(State::Stopped);
-//    }
+    }
+    else if (State::Playing == mState)
+    {
+        mChangeState(State::PreparingToStop);
+    }
 }
 
 
@@ -212,27 +216,22 @@ void ChannelStrip::mChangeState(State state)
         {
             case State::Playing:
                 setPlayingState();
-//                mStopButton.setEnabled(true);
                 break;
                 
             case State::Stopped:
                 setStoppedState();
-//                mStopButton.setEnabled(false);
                 break;
                 
             case State::Recording:
                 setRecordingState();
-//                mStopButton.setEnabled(true);
                 break;
                 
             case State::PreparingToPlay:
                 setP2PlayState();
-//                mStopButton.setEnabled(true);
                 break;
                 
             case State::PreparingToStop:
                 setP2StopState();
-//                mStopButton.setEnabled(false);
                 break;
                 
             case State::PreparingToRecord:
@@ -312,9 +311,25 @@ void ChannelStrip::mMuteButtonClicked()
 
 void ChannelStrip::mClipClicked(int clipNum)
 {
-    mClipSelected = clipNum;
+    for (juce::uint8 channel = 0; channel < numClips; ++channel)
+    {
+        mClipButtons[channel].setSelected(false);
+    }
+    
     mSetSelectedClip(mClipSelected);
-    mSetUnselectedClips();
+    
+    if(State::Playing == mState)
+    {
+        if(mRecordArmed)
+        {
+            mChangeState(State::PreparingToRecord);
+        }
+    }
+    else if(State::Stopped == mState)
+    {
+        mChangeState(State::PreparingToPlay);
+    }
+    
     sendChangeMessage();
 }
 
@@ -323,21 +338,17 @@ void ChannelStrip::mRefreshClipStates()
     // check if clips are empty
 }
 
-void ChannelStrip::mStartPlaying(int clipNum)
+void ChannelStrip::mStartPlaying(juce::uint8 clipNum)
 {
     if(State::Playing == mState)
     {
+        mLoadClip(clipNum);
         if(mAudioClip.isLoaded())
         {
             mAudioClip.start();
         }
+        sendChangeMessage();
     }
-    else if (State::Recording == mState)
-    {
-        mAudioClip.stop();
-        mStartRecording();
-    }
-    sendChangeMessage();
 }
 
 
@@ -432,35 +443,30 @@ void ChannelStrip::setClipsColour()
 
 void ChannelStrip::mSetSelectedClip(int clipNum)
 {
-    ClipButton *pClip = &mClipButtons[clipNum];
+    mClipSelected = clipNum;
     
     switch (mState) {
         case State::PreparingToPlay:
         {
-            if(mClipExists(clipNum))
+            if(mClipExists(mClipSelected))
             {
-                pClip->setState(ClipButton::State::PreparingToPlay);
+                 mClipButtons[mClipSelected].setState(ClipButton::State::PreparingToPlay);
             }
             else
             {
-                pClip->setState(ClipButton::State::Empty);
+                mClipButtons[mClipSelected].setState(ClipButton::State::Empty);
             }
             break;
         }
-        case State::Playing:           pClip->setState(ClipButton::State::Playing);
-        case State::Recording:         pClip->setState(ClipButton::State::Recording);
-        case State::PreparingToRecord: pClip->setState(ClipButton::State::PreparingToRecord);
-        case State::PreparingToStop:   pClip->setState(ClipButton::State::PreparingToStop);
+        case State::Playing:           mClipButtons[clipNum].setState(ClipButton::State::Playing);
+        case State::Recording:         mClipButtons[clipNum].setState(ClipButton::State::Recording);
+        case State::PreparingToRecord: mClipButtons[clipNum].setState(ClipButton::State::PreparingToRecord);
+        case State::PreparingToStop:   mClipButtons[clipNum].setState(ClipButton::State::PreparingToStop);
             
         default: break;
     }
     
-    
-    for (int i = 0; i < numClips; ++i)
-    {
-        mClipButtons[i].setSelected(false);
-    }
-    pClip->setSelected(true);
+    mClipButtons[clipNum].setSelected(true);
 }
 
 
@@ -469,7 +475,7 @@ void ChannelStrip::mSetUnselectedClips()
 {
     for(juce::uint8 i = 0; i < numClips; ++i)
     {
-        if(mClipButtons[i].isSelected())
+        if(!mClipButtons[i].isSelected())
         {
             if(mClipExists(i))
             {
@@ -508,6 +514,7 @@ int ChannelStrip::mGetSelectedClip()
 
 void ChannelStrip::setPlayingState()
 {
+
     mStopButton.setEnabled(true);
     mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
     
