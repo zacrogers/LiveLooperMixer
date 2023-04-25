@@ -28,17 +28,17 @@ public:
     MainComponent                ();
     ~MainComponent               ();
 
-    // AudioAppComponent
+    // AudioAppComponent overrides
     void prepareToPlay           (int samplesPerBlockExpected, double sampleRate)   override;
     void getNextAudioBlock       (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources        ()                                                 override;
     void paint                   (juce::Graphics& g)                                override;
     void resized                 ()                                                 override;
 
-    // ChangeListener
+    // ChangeListener overrides
     void changeListenerCallback  (juce::ChangeBroadcaster* source)                  override;
     
-    // Timer
+    // Timer override
     void timerCallback           ()                                                 override;
 
 
@@ -108,6 +108,9 @@ private:
     void         mRecordButtonClicked  ();
     void         mMuteButtonClicked    ();
     
+    // Slider Callbacks
+    void         mInputTrimChanged     ();
+    void         mMasterVolChanged     ();
     void         volumeChanged         (int channel);
     
 
