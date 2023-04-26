@@ -15,10 +15,8 @@
 namespace z_lib
 {
 
-class ClipButton : public juce::TextButton,
-                   public juce::ChangeBroadcaster
+class ClipButton : public juce::TextButton
 {
-    
 public:
     enum class State
     {
@@ -29,43 +27,35 @@ public:
         PreparingToPlay,
         PreparingToRecord,
         Stopped,
-        PreparingToStop
+        PreparingToStop,
+        NumStates
     };
     
-    ClipButton();
-    ~ClipButton();
+    ClipButton()  {}
+    ~ClipButton() {}
     
-    void arm(bool armed);
-    void play(void);
-    void stop(void);
-    void setEmpty(bool empty) { mClipEmpty = empty; }
-    
-    void setState(State state) { mState = state; mSetColour(); }
-    void setSelected(bool selected) { mSelected = selected; mSetColour(); }
-    bool isSelected() const {return mSelected; }
-    
-    bool playing();
-    bool recording();
+    void setState    (State state)   { mState = state;       mSetColour(); }
+    void setSelected (bool selected) { mSelected = selected; mSetColour(); }
+    bool isSelected  () const        { return mSelected; }
+
     
 private:
-    bool mRecArmed  { false };
-    bool mClipEmpty { false };
-    bool mPlaying   { false };
-    bool mRecording { false };
-    bool mSelected  { false };
-    
     State mState    { State::Empty };
+    bool  mSelected { false };
     
-    juce::Colour mArmedColour     { juce::Colours::darkred };
-    juce::Colour mRecordingColour { juce::Colours::red };
-    juce::Colour mPlayColour      { juce::Colours::darkgreen };
-    juce::Colour mPlayingColour   { juce::Colours::green };
-    juce::Colour mEmptyColour     { juce::Colours::slateblue };
+    const juce::Colour mStateColours[static_cast<int>(State::NumStates)] = {
+        juce::Colours::green,     // Playing
+        juce::Colours::red,       // Recording
+        juce::Colours::blue,      // Muted
+        juce::Colours::slateblue, // Empty
+        juce::Colours::darkgreen, // Preparing to play
+        juce::Colours::darkred,   // Preparing to record
+        juce::Colours::blue,      // Stopped
+        juce::Colours::cyan       // Preparing to stop
+    };
     
-    void mClicked();
-    void mSetColour();
-    
-    
+    juce::Colour mGetStateColour(State state) const { return mStateColours[static_cast<int>(state)]; }
+    void         mSetColour() { setColour(juce::TextButton::buttonColourId, mGetStateColour(<#State state#>)); };
 };
 
 }
