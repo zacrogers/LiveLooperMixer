@@ -3,6 +3,7 @@
 #include <string.h>
 #include <cstdint>
 
+#include "Common.h"
 #include "myEnums.h"
 #include "ClipButton.h"
 #include "Recorder.h"
@@ -29,130 +30,111 @@ public:
         DeviceManagerNotInitialised
     };
     
-    enum class State
-    {
-        Playing,
-        Recording,
-        Stopped,
-        PreparingToPlay,
-        PreparingToStop,
-        PreparingToRecord
-    };
-    
     struct Snapshot
     {
-        std::uint8_t currentClip;
-        std::uint8_t nextClip;
-        State        state;
+        juce::uint8 currentClip;
+        juce::uint8 nextClip;
+        State       state;
     };
-
-    // Component methods
+    
+    /** Component overrides */
     void paint (juce::Graphics& g) override;
     void resized() override;
     
-    // Change Listener
+    /** Change Listener override */
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     
-    // Channel Strip
+    /** Channel Strip */
     ChannelStrip();
-    ChannelStrip(juce::AudioDeviceManager &deviceManager);
-    ChannelStrip(juce::AudioDeviceManager &deviceManager, Recorder &recorder);
     ~ChannelStrip();
     
-    void init(const juce::AudioDeviceManager *deviceManager, Recorder *recorder);
+    void init(const juce::AudioDeviceManager *deviceManager, Recorder *recorder, State *state);
+    void updateState(); /** Should be called whenever the parents state changes */
     
-    void setDeviceManager();
-    void setRecorder();
-    
-    /** These should be used for external control */
-    void play();
-    void stop();
-    void record();
-    
-    void setState(State state) { mChangeState(state); }
-    
-    void setArmed(bool armed);
-    bool isArmed() const { return mRecordArmed; }
-    
-    struct Snapshot snapshot() const { return mSnapshot; };
-    
-    void prepareToRecord();
     // needs to be called if project is reloaded because the project id will change
     // TODO: find a better way to manage the file paths/locations
     void updateClipsPath(juce::String path) { mClipsPath = path; DBG("Clips path: " << path);};
     
-    State state() const { return mState; }
-    
-    AudioClip *pAudioClip() { return &mAudioClip; };
+    /** Getters */
+    struct Snapshot  snapshot    () const { return mSnapshot; }
+    const  AudioClip *pAudioClip ()       { return &mAudioClip; }
     
 private:
-    AudioClip mAudioClip;
-    juce::String mClipsPath;
-    
-    juce::String mClipPath(juce::uint8 clip) const { return mClipsPath + "clip_" + juce::String(clip) + ".wav"; }
-    
-    
     // Member variables
-    State mState          { State::Stopped };
+    AudioClip                      mAudioClip;
+    juce::String                   mClipsPath;
     
-    struct Snapshot mSnapshot = { 0 };
-
-    bool mMuted           { false };
-    bool mSoloed          { false };
-    bool mRecordArmed     { false };
-
-    double mVolume        { 0 };
-    double mPan           { 0 };
+    State                          mState                   { State::Stopped };
+    State                          *pState;
     
-    int mClipSelected     { 0 };
-    int mLastClipSelected { 0 };
+    struct Snapshot                mSnapshot                { 0 };
+
+    bool                           mMuted                   { false };
+    bool                           mSoloed                  { false };
+    bool                           mRecordArmed             { false };
+
+    double                         mVolume                  { 0 };
+    double                         mPan                     { 0 };
+    
+    juce::uint8                    mClipSelected            { 0 };
+    juce::uint8                    mLastClipSelected        { 0 };
     
     const juce::AudioDeviceManager *pDeviceManager;
-    Recorder                 *pRecorder;
+    Recorder                       *pRecorder;
 
-    juce::File               mLastRecording;
-    juce::File               mCurrentClip;
+    juce::File                     mLastRecording;
+    juce::File                     mCurrentClip;
     
-    // Gui elements
-    juce::TextButton         mRecordArmButton { "R" };
-    juce::TextButton         mStopButton      { "S" };
-    juce::TextButton         mMuteButton      { "M" };
-    z_lib::ClipButton        mClipButtons[numClips];
+    /** Gui elements */
+    juce::TextButton               mRecordArmButton        { "R" };
+    juce::TextButton               mStopButton             { "S" };
+    juce::TextButton               mMuteButton             { "M" };
+    z_lib::ClipButton              mClipButtons[numClips];
     
-    juce::Slider             mVolumeSlider { juce::Slider::SliderStyle::LinearBarVertical, juce::Slider::NoTextBox };
-    juce::Slider             mPanSlider;
+    juce::Slider                   mVolumeSlider           { juce::Slider::SliderStyle::LinearBarVertical,
+                                                            juce::Slider::NoTextBox };
+    juce::Slider                   mPanSlider;
     
-    // Member functions
+    /** Member functions */
     void mInitGuiElements();
+    void mUpdateState(State state);
+    juce::String mClipPath(juce::uint8 clip) const { return mClipsPath + "clip_" + juce::String(clip) + ".wav"; }
     
-    void mChangeState(State state);
-    
+    /** Button click handlers */
     void mRecordArmButtonClicked();
     void mStopButtonClicked();
     void mMuteButtonClicked();
-    void mClipClicked(int clipNum);
+    void mClipClicked(juce::uint8 clipNum);
     
+    /** Actions */
     void mStartPlaying(juce::uint8 clipNum);
     void mStopPlaying();
     void mStartRecording();
     void mStopRecording();
     void mLoadClip(juce::uint8 clip);
+    void mClearSelectedClip();
     
-    // clip functions
-    void setClipsColour();
+    /** Clip functions */
     void mSetSelectedClip(int clipNum);
-    void mSetUnselectedClips();
     int  mGetSelectedClip();
     void mRefreshClipStates();
     bool mClipExists(juce::uint8 clipNum);
+
+    /** State  handlers */
+    void mPlayingState();
+    void mRecordingState();
+    void mStoppedState();
+    void mPrepareToPlayState();
+    void mPrepareToRecordState();
+    void mPrepareToStopState();
     
-    // Gui state setters
-    void setPlayingState();
-    void setRecordingState();
-    void setStoppedState();
-    void setP2PlayState();
-    void setP2RecordState();
-    void setP2StopState();
+    /* TODO: Get Rid of **/
+    void play();
+    void stop();
+    void record();
+    void prepareToPlay();
+    void prepareToStop();
+    void prepareToRecord();
     
 };
 } //z_lib

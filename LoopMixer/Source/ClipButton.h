@@ -22,11 +22,11 @@ public:
     {
         Playing,
         Recording,
+        Stopped,
         Muted,
         Empty,
         PreparingToPlay,
         PreparingToRecord,
-        Stopped,
         PreparingToStop,
         NumStates
     };
@@ -46,16 +46,16 @@ private:
     const juce::Colour mStateColours[static_cast<int>(State::NumStates)] = {
         juce::Colours::green,     // Playing
         juce::Colours::red,       // Recording
+        juce::Colours::darkblue,  // Stopped
         juce::Colours::blue,      // Muted
         juce::Colours::slateblue, // Empty
         juce::Colours::darkgreen, // Preparing to play
         juce::Colours::darkred,   // Preparing to record
-        juce::Colours::blue,      // Stopped
         juce::Colours::cyan       // Preparing to stop
     };
     
     juce::Colour mGetStateColour(State state) const { return mStateColours[static_cast<int>(state)]; }
-    void         mSetColour() { setColour(juce::TextButton::buttonColourId, mGetStateColour(<#State state#>)); };
+    void         mSetColour() { setColour(juce::TextButton::buttonColourId, mGetStateColour(mState)); };
 };
 
 }

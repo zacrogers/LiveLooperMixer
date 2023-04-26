@@ -6,6 +6,7 @@
 
 #include "CompileFlags.h"
 
+#include "Common.h"
 #include "ChannelStrip.h"
 #include "AudioThru.h"
 #include "Recorder.h"
@@ -34,7 +35,7 @@ public:
     void paint                   (juce::Graphics& g)                                override;
     void resized                 ()                                                 override;
 
-    // ChangeListener overrides
+    // ChangeListener override
     void changeListenerCallback  (juce::ChangeBroadcaster* source)                  override;
     
     // Timer override
@@ -42,15 +43,6 @@ public:
 
 
 private:
-    enum class State
-    {
-        Playing,
-        Recording,
-        Stopped,
-        PreparingToPlay,
-        PreparingToStop,
-        PreparingToRecord
-    };
     /** Gui Elements */
     // Colors
     juce::Colour             mDisabledColour   { juce::Colours::darkslateblue };
@@ -86,6 +78,7 @@ private:
     int                      mBarsToRecord     { 4 };
     bool                     mRecordArmed      { false };
     bool                     mInputMuted       { false };
+    bool                     mTimerFirstFire   { true };
     int                      mLastPlayedIndex  { 0 };
     State                    mState;
     
@@ -106,8 +99,10 @@ private:
     
     /** Member Functions */
     void         mInitGuiElements      ();
+    void         mUpdateChannelsState  ();
     void         mChangeState          (State newState);
     bool         mPeriodEnded          ();
+    void         mHandlePeriodEnded    ();
     juce::String mChannelPath          (juce::uint8 channel) const;
     
     /** States : These implement all of the the state functionality **/
@@ -128,13 +123,6 @@ private:
     void         mInputTrimChanged     ();
     void         mMasterVolChanged     ();
     void         volumeChanged         (int channel);
-    
-
-
-
-
-    
-    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

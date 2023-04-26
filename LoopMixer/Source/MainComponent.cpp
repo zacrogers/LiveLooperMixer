@@ -8,6 +8,15 @@
 
 #include "MainComponent.h"
 
+/**
+    Main structure:
+        : button press -> click handler -> set state -> state handler
+ 
+        - the click handler is responsible for setting the state based on current conditions.
+        - the state handler is responsible for the state logic, and updating the state of the channel strips.
+ */
+
+
 //==============================================================================
 MainComponent::MainComponent()
 {
@@ -22,7 +31,7 @@ MainComponent::MainComponent()
     
     for (juce::uint8 channel = 0; channel < numChannels; ++channel)
     {
-        mChannelStrips[channel].init(&mAudioDeviceManager, &mRecorder);
+        mChannelStrips[channel].init(&mAudioDeviceManager, &mRecorder, &mState);
         mChannelStrips[channel].addChangeListener(this);
         mChannelStrips[channel].updateClipsPath(mChannelPath(channel));
         mMixer.addInputSource((juce::PositionableAudioSource*)mChannelStrips[channel].pAudioClip(), true);
@@ -62,20 +71,6 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-//    if (mInputMuted)
-//    {
-//        bufferToFill.clearActiveBufferRegion();
-//        return;
-//    }
-
-    
-//    if (readerSource[0].get() == nullptr)
-//    {
-//        bufferToFill.clearActiveBufferRegion();
-//        return;
-//    }
-
-    //transportSource.getNextAudioBlock(bufferToFill);
     mMixer.getNextAudioBlock(bufferToFill);
 }
 
@@ -146,39 +141,6 @@ void MainComponent::resized()
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     DBG("Change listener");
-    for(int i = 0; i < numChannels; ++i)
-    {
-//        if(source == &mChannelStrips[i])
-//        {
-//            DBG("***** Channel strip callback *****");
-//
-//            if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToPlay)
-//            {
-//                DBG("Preparing play:" << juce::String(i));
-//            }
-//            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToStop)
-//            {
-//                DBG("Preparing stop:" << juce::String(i));
-//            }
-//            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToRecord)
-//            {
-//                DBG("Preparing rec:" << juce::String(i));
-//            }
-//            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Stopped)
-//            {
-//                DBG("Stopped:" << juce::String(i));
-//            }
-//            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Playing)
-//            {
-//                DBG("Playing:" << juce::String(i));
-//            }
-//            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Recording)
-//            {
-//                DBG("Recording:" << juce::String(i));
-//            }
-//            DBG("*******************");
-//        }
-    }
 }
 
 
@@ -187,59 +149,20 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 ***************************************************/
 void MainComponent::timerCallback()
 {
-    
-    if (mRecorder.isRecording() && !mMetronome.countingIn())
-    {
-        for(juce::uint8 i = 0; i < numChannels; ++i)
-        {
-            if(mChannelStrips[i].isArmed())
-            {
-                mChannelStrips[i].record();
-            }
-        }
-        
-        DBG("Start recording");
-    }
-    
     mMetronome.advance();
+    
+    if(mTimerFirstFire)
+    {
+        DBG("Timer: First fire");
+        mUpdateChannelsState();
+        mTimerFirstFire = false;
+    }
     
     if (mPeriodEnded())
     {
-        DBG("Period ended");
-        for(juce::uint8 i = 0; i < numChannels; ++i)
-        {
-            if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToPlay)
-            {
-                mChannelStrips[i].play();
-            }
-            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToStop)
-            {
-                mChannelStrips[i].stop();
-            }
-            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::PreparingToRecord)
-            {
-                mChannelStrips[i].record();
-            }
-            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Playing)
-            {
-                mChannelStrips[i].pAudioClip()->restart();
-                mChannelStrips[i].pAudioClip()->start();
-            }
-            else if(mChannelStrips[i].state() == z_lib::ChannelStrip::State::Recording)
-            {
-                mChannelStrips[i].play();
-            }
-        }
-    }
-    
-    
-    if ((mRecordArmed && mRecorder.isRecording()))
-    {
-        if (mMetronome.numBars() == mNumRecBarsSlider.getValue())
-        {
-            mRecorder.stopRecording();
-
-        }
+        DBG("Timer: Period ended");
+        mHandlePeriodEnded();
+        mUpdateChannelsState();
     }
 }
 
@@ -305,6 +228,15 @@ void MainComponent::mInitGuiElements()
 }
 
 
+void MainComponent::mUpdateChannelsState()
+{
+    for(juce::uint8 chan = 0; chan < numChannels; ++chan)
+    {
+        mChannelStrips[chan].updateState();
+    }
+}
+
+
 void MainComponent::mChangeState(State newState)
 {
     if (mState != newState)
@@ -350,6 +282,22 @@ bool MainComponent::mPeriodEnded()
 }
 
 
+void MainComponent::mHandlePeriodEnded()
+{
+    switch (mState)
+    {
+        case State::Recording:         mChangeState(State::Playing);   break;
+        case State::PreparingToPlay:   mChangeState(State::Playing);   break;
+        case State::PreparingToStop:   mChangeState(State::Stopped);   break;
+        case State::PreparingToRecord: mChangeState(State::Recording); break;
+        case State::Playing: break;
+        case State::Stopped: break;
+    }
+    
+    mUpdateChannelsState();
+}
+
+
 juce::String MainComponent::mChannelPath(juce::uint8 channel) const
 {
     return mProjectsPath + "/default_project" + "/channel_" + juce::String(channel) + "/";
@@ -361,17 +309,13 @@ juce::String MainComponent::mChannelPath(juce::uint8 channel) const
 *****************************************************/
 void MainComponent::mStatePlaying()
 {
-    for(juce::uint8 channel = 0; channel < numChannels; ++channel)
-    {
-        mChannelStrips[channel].play();
-    }
-    
-    startTimer(2400);
-
     if (mMetronome.isEnabled())
     {
+        mTimerFirstFire = true;
+
         mMetronome.start();
         startTimer(mMetronome.getIntervalMs());
+
         mPlayButton.setEnabled(false);
         mStopButton.setEnabled(true);
         mArmRecordButton.setEnabled(false);
@@ -381,21 +325,13 @@ void MainComponent::mStatePlaying()
 
 void MainComponent::mStateRecording()
 {
-    for(juce::uint8 channel = 0; channel < numChannels; ++channel)
-    {
-        if(mChannelStrips[channel].isArmed())
-        {
-            mChannelStrips[channel].record();
-            break;
-        }
-    }
-    
-    startTimer(2400);
-
     if (mMetronome.isEnabled())
     {
+        mTimerFirstFire = true;
+
         mMetronome.start();
         startTimer(mMetronome.getIntervalMs());
+        
         mPlayButton.setEnabled(false);
         mStopButton.setEnabled(true);
         mArmRecordButton.setEnabled(false);
@@ -406,9 +342,14 @@ void MainComponent::mStateRecording()
 void MainComponent::mStateStopped()
 {
     stopTimer();
-    for(int i = 0; i < numChannels; ++i)
+    mUpdateChannelsState();
+    
+    if ((mRecordArmed && mRecorder.isRecording()))
     {
-        mChannelStrips[i].stop();
+        if (mMetronome.numBars() == mNumRecBarsSlider.getValue())
+        {
+            mRecorder.stopRecording();
+        }
     }
 
     mMetronome.resetStep();
@@ -420,19 +361,22 @@ void MainComponent::mStateStopped()
 
 void MainComponent::mStatePrep2Play()
 {
-    
+    mUpdateChannelsState();
+
 }
 
 
 void MainComponent::mStatePrep2Stop()
 {
-    
+    mUpdateChannelsState();
+
 }
 
 
 void MainComponent::mStatePrep2Record()
 {
-    
+    mUpdateChannelsState();
+
 }
 
 
@@ -461,12 +405,11 @@ void MainComponent::mStopButtonClicked()
         mChangeState(State::PreparingToStop);
     }
     else if(State::PreparingToPlay   == mState ||
-       State::PreparingToStop   == mState ||
-       State::PreparingToRecord == mState)
+           State::PreparingToStop   == mState ||
+           State::PreparingToRecord == mState)
     {
         mChangeState(State::Stopped);
     }
-
 }
 
 
@@ -484,25 +427,8 @@ void MainComponent::mRecordButtonClicked()
     {
         mRecordArmed = !mRecordArmed;
     }
-    
-    
-    if(mRecordArmed)
-    {
-        mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-        
-        for(juce::uint8 i = 0; i < numChannels; ++i)
-        {
-            if(mChannelStrips[i].isArmed())
-            {
-                mChannelStrips[i].setState(z_lib::ChannelStrip::State::PreparingToRecord);
-            }
-        }
-    }
-    else
-    {
-        mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
-    }
 }
+
 
 void MainComponent::mMuteButtonClicked()
 {
