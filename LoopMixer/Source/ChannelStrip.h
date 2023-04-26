@@ -48,13 +48,15 @@ public:
     ChannelStrip();
     ~ChannelStrip();
     
-    void init                     (const juce::AudioDeviceManager *deviceManager, Recorder *recorder, State *state);
+    void init                     (const juce::AudioDeviceManager *deviceManager, Recorder *recorder, State *state, juce::String clipsPath);
     void updateState              (); /** Should be called whenever the parents state changes */
-    void updateClipsPath          (juce::String path) { mClipsPath = path; }; // needs to be called if project is reloaded because the project id will change
+    void updateClipsPath          (juce::String path) { mClipsPath   = path; }; // needs to be called if project is reloaded because the project id will change
+    void setArmed                 (bool armed)        { mRecordArmed = !armed; mRecordArmButtonClicked();}
     
     /** Getters */
     struct Snapshot  snapshot     () const { return mSnapshot; }
     const  AudioClip *pAudioClip  ()       { return &mAudioClip; }
+    bool             isArmed      ()       { return mRecordArmed; }
     
 private:
     // Member variables

@@ -64,7 +64,6 @@ void ChannelStrip::changeListenerCallback(juce::ChangeBroadcaster* source)
 }
 
 
-
 /* *===============================
            Channel Strip
 =================================* */
@@ -75,18 +74,29 @@ ChannelStrip::ChannelStrip(){}
 ChannelStrip::~ChannelStrip(){}
 
 
-void ChannelStrip::init(const juce::AudioDeviceManager *deviceManager, z_lib::Recorder *recorder, State *state)
+void ChannelStrip::init(const juce::AudioDeviceManager *deviceManager, z_lib::Recorder *recorder, State *state, juce::String clipsPath)
 {
     pDeviceManager = deviceManager;
     pRecorder      = recorder;
     pState         = state;
-    
-    for (juce::uint8 i = 0; i < numClips; ++i)
-    {
-        mClipButtons[i].onClick = [this, i] () { mClipClicked(i); };
-    }
+    mClipsPath     = clipsPath;
     
     mInitGuiElements();
+    for(juce::uint8 clip = 0; clip < numClips; ++clip)
+    {
+        mClipButtons[clip].onClick = [this, clip] () { mClipClicked(clip); };
+        
+        mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::chartreuse);
+        if(mClipExists(clip))
+        {
+            mClipButtons[clip].setEnabled(true);
+        }
+        else
+        {
+            mClipButtons[clip].setEnabled(false);
+        }
+    }
+
 }
 
 
@@ -188,21 +198,54 @@ void ChannelStrip::mUpdateState(State state)
 
 void ChannelStrip::mRecordArmButtonClicked()
 {
-    if(State::PreparingToRecord == *pState ||
-       State::Recording == *pState)
+    mRecordArmed = !mRecordArmed;
+    
+//    mRefreshClipStates();
+    if(State::Stopped == *pState)
     {
-        mUpdateState(State::PreparingToStop);
-        mRecordArmed = false;
-    }
-    else if (State::PreparingToPlay == *pState ||
-             State::PreparingToStop == *pState ||
-             State::Playing         == *pState ||
-             State::Stopped         == *pState)
-    {
-        mUpdateState(State::PreparingToRecord);
-        mRecordArmed = true;
+        if(mRecordArmed)
+        {
+            mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+            mClipButtons[mGetSelectedClip()].setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+        }
+        else
+        {
+            for(juce::uint8 clip = 0; clip < numClips; ++clip)
+            {
+                if(mClipExists(clip))
+                {
+                    mClipButtons[clip].setEnabled(true);
+                    mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::chartreuse);
+                }
+                else if(clip == mGetSelectedClip()) { }
+                else
+                {
+                    mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::chartreuse);
+                    mClipButtons[clip].setEnabled(false);
+                }
+            }
+            
+            mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+            mClipButtons[mGetSelectedClip()].setColour(juce::TextButton::buttonColourId, juce::Colours::darkgreen);
+        }
     }
     
+    
+//    if(State::PreparingToRecord == *pState ||
+//       State::Recording == *pState)
+//    {
+////        mUpdateState(State::PreparingToStop);
+//        mRecordArmed = false;
+//    }
+//    else if (State::PreparingToPlay == *pState ||
+//             State::PreparingToStop == *pState ||
+//             State::Playing         == *pState ||
+//             State::Stopped         == *pState)
+//    {
+////        mUpdateState(State::PreparingToRecord);
+//        mRecordArmed = true;
+//    }
+//    
     sendChangeMessage();
 }
 
@@ -214,11 +257,11 @@ void ChannelStrip::mStopButtonClicked()
         State::PreparingToPlay   == *pState ||
         State::PreparingToRecord == *pState)
     {
-        mUpdateState(State::PreparingToStop);
+//        mUpdateState(State::PreparingToStop);
     }
     else if(State::PreparingToStop == *pState)
     {
-        mUpdateState(State::Stopped);
+//        mUpdateState(State::Stopped);
     }
 
     sendChangeMessage();
@@ -241,26 +284,40 @@ void ChannelStrip::mMuteButtonClicked()
 }
 
 
-void ChannelStrip::mClipClicked(juce::uint8  clipNum)
+void ChannelStrip::mClipClicked(juce::uint8 clipNum)
 {
     if(clipNum == mClipSelected) return;
+    
+    DBG("Clip pressed: " << juce::String(clipNum));
 
     mClearSelectedClip();
-    mSetSelectedClip(mClipSelected);
-
-    if(State::Playing == *pState && mRecordArmed && mClipExists(clipNum))
+    mSetSelectedClip(clipNum);
+    
+    for(juce::uint8 clip = 0; clip < numClips; ++clip)
     {
-        mUpdateState(State::PreparingToRecord);
+        if(mClipExists(clip))
+        {
+            mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::yellow);
+        }
+        else if(clip == mGetSelectedClip()) { }
+        else
+        {
+            mClipButtons[clip].setColour(juce::TextButton::buttonColourId, juce::Colours::chartreuse);
+        }
+    }
+
+    if(State::Playing == *pState && mRecordArmed && mClipExists(mClipSelected))
+    {
     }
     else if(State::Stopped == *pState)
     {
-        if(mRecordArmed)
+        if(mRecordArmed && mClipExists(mGetSelectedClip()))
         {
-            mUpdateState(State::PreparingToRecord);
+            mClipButtons[mGetSelectedClip()].setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
         }
         else
         {
-            mUpdateState(State::PreparingToPlay);
+            mClipButtons[mGetSelectedClip()].setColour(juce::TextButton::buttonColourId, juce::Colours::darkgreen);
         }
     }
     
@@ -399,7 +456,22 @@ void ChannelStrip::mLoadClip(juce::uint8 clip)
 
 void ChannelStrip::mRefreshClipStates()
 {
-    // check if clips are empty
+    for(juce::uint8 clip = 0; clip < numClips; ++clip)
+    {
+        if(State::Stopped == *pState)
+        {
+            if((mGetSelectedClip() == clip))
+            {
+                mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+                mClipButtons[mGetSelectedClip()].setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+            }
+            else
+            {
+                mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+                mClipButtons[mGetSelectedClip()].setColour(juce::TextButton::buttonColourId, juce::Colours::darkgreen);
+            }
+        }
+    }
 }
 
 

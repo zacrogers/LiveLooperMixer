@@ -31,7 +31,7 @@ MainComponent::MainComponent()
     
     for (juce::uint8 channel = 0; channel < numChannels; ++channel)
     {
-        mChannelStrips[channel].init(&mAudioDeviceManager, &mRecorder, &mState);
+        mChannelStrips[channel].init(&mAudioDeviceManager, &mRecorder, &mState, mChannelPath(channel));
         mChannelStrips[channel].addChangeListener(this);
         mChannelStrips[channel].updateClipsPath(mChannelPath(channel));
         mMixer.addInputSource((juce::PositionableAudioSource*)mChannelStrips[channel].pAudioClip(), true);
@@ -140,7 +140,23 @@ void MainComponent::resized()
 *********************************************************/
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-//    DBG("Change listener");
+    DBG("Change listener");
+    for(juce::uint8 chan = 0; chan < numChannels; ++chan)
+    {
+        if(source == &mChannelStrips[chan])
+        {
+            if(mChannelStrips[chan].isArmed())
+            {
+                for(juce::uint8 _chan = 0; _chan < numChannels; ++_chan)
+                {
+                    if(chan != _chan)
+                    {
+                        mChannelStrips[_chan].setArmed(false);
+                    }
+                }
+            }
+        }
+    }
 }
 
 
