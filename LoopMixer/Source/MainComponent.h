@@ -80,7 +80,7 @@ private:
     bool                     mInputMuted       { false };
     bool                     mTimerFirstFire   { true };
     int                      mLastPlayedIndex  { 0 };
-    State                    mState;
+    State                    mState            { State::Stopped };
     
     juce::Uuid               mCurrentProjectId;
     juce::String             mProjectsPath;
@@ -109,9 +109,9 @@ private:
     void        mStatePlaying          ();
     void        mStateRecording        ();
     void        mStateStopped          ();
-    void        mStatePrep2Play        ();
-    void        mStatePrep2Stop        ();
-    void        mStatePrep2Record      ();
+    void        mStatePrepareToPlay    ();
+    void        mStatePrepareToStop    ();
+    void        mStatePrepareToRecord  ();
 
     /** Button callbacks : Change state based on current state */
     void         mPlayButtonClicked    ();

@@ -140,7 +140,7 @@ void MainComponent::resized()
 *********************************************************/
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-    DBG("Change listener");
+//    DBG("Change listener");
 }
 
 
@@ -242,7 +242,7 @@ void MainComponent::mChangeState(State newState)
     if (mState != newState)
     {
         mState = newState;
-
+        DBG("New state: " << juce::String(static_cast<int>(mState)));
         switch (mState)
         {
             case State::Playing:
@@ -255,13 +255,13 @@ void MainComponent::mChangeState(State newState)
                 mStateStopped();
                 break;
             case State::PreparingToPlay:
-                mStatePrep2Play();
+                mStatePrepareToPlay();
                 break;
             case State::PreparingToStop:
-                mStatePrep2Stop();
+                mStatePrepareToStop();
                 break;
             case State::PreparingToRecord:
-                mStatePrep2Record();
+                mStatePrepareToRecord();
                 break;
         }
     }
@@ -315,7 +315,10 @@ void MainComponent::mStatePlaying()
 
         mMetronome.start();
         startTimer(mMetronome.getIntervalMs());
-
+        
+        mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::green);
+        mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+        
         mPlayButton.setEnabled(false);
         mStopButton.setEnabled(true);
         mArmRecordButton.setEnabled(false);
@@ -331,6 +334,9 @@ void MainComponent::mStateRecording()
 
         mMetronome.start();
         startTimer(mMetronome.getIntervalMs());
+        
+        mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+        mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
         
         mPlayButton.setEnabled(false);
         mStopButton.setEnabled(true);
@@ -354,26 +360,53 @@ void MainComponent::mStateStopped()
 
     mMetronome.resetStep();
     mMetronome.stop();
+    
+    mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+    mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+    
     mPlayButton.setEnabled(true);
     mArmRecordButton.setEnabled(true);
+    mStopButton.setEnabled(false);
 }
 
 
-void MainComponent::mStatePrep2Play()
+void MainComponent::mStatePrepareToPlay()
 {
     mUpdateChannelsState();
+    
+    mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::orange);
+    mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+
+    
+    mPlayButton.setEnabled(false);
+    mArmRecordButton.setEnabled(false);
+    mStopButton.setEnabled(true);
 }
 
 
-void MainComponent::mStatePrep2Stop()
+void MainComponent::mStatePrepareToStop()
 {
     mUpdateChannelsState();
+    
+    mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+    mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::orange);
+    
+    mPlayButton.setEnabled(true);
+    mArmRecordButton.setEnabled(false);
+    mStopButton.setEnabled(true);
 }
 
 
-void MainComponent::mStatePrep2Record()
+void MainComponent::mStatePrepareToRecord()
 {
     mUpdateChannelsState();
+    
+    mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::red);
+    mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+    
+    mPlayButton.setEnabled(false);
+    mArmRecordButton.setEnabled(false);
+    mStopButton.setEnabled(true);
 }
 
 
@@ -423,7 +456,20 @@ void MainComponent::mRecordButtonClicked()
     else if(State::Stopped == mState)
     {
         mRecordArmed = !mRecordArmed;
+        
+        if (mRecordArmed)
+        {
+            mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+            mArmRecordButton.setColour(juce::ComboBox::outlineColourId, juce::Colours::red);
+        }
+        else
+        {
+            mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
+            mArmRecordButton.setColour(juce::ComboBox::outlineColourId, juce::Colours::darkred);
+        }
+
     }
+    resized();
 }
 
 
@@ -437,7 +483,8 @@ void MainComponent::mMuteButtonClicked()
     }
     else
     {
-        mInputMuteButton.setColour(juce::TextButton::buttonColourId, mDisabledColour);
+        mInputMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::purple);
+        mInputMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::purple);
     }
 }
 
