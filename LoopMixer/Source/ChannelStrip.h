@@ -38,61 +38,56 @@ public:
     };
     
     /** Component overrides */
-    void paint (juce::Graphics& g) override;
-    void resized() override;
+    void paint                    (juce::Graphics& g) override;
+    void resized                  () override;
     
     /** Change Listener override */
-    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+    void changeListenerCallback   (juce::ChangeBroadcaster* source) override;
     
     /** Channel Strip */
     ChannelStrip();
     ~ChannelStrip();
     
-    void init(const juce::AudioDeviceManager *deviceManager, Recorder *recorder, State *state);
-    void updateState(); /** Should be called whenever the parents state changes */
-    
-    // needs to be called if project is reloaded because the project id will change
-    // TODO: find a better way to manage the file paths/locations
-    void updateClipsPath(juce::String path) { mClipsPath = path; DBG("Clips path: " << path);};
+    void init                     (const juce::AudioDeviceManager *deviceManager, Recorder *recorder, State *state);
+    void updateState              (); /** Should be called whenever the parents state changes */
+    void updateClipsPath          (juce::String path) { mClipsPath = path; }; // needs to be called if project is reloaded because the project id will change
     
     /** Getters */
-    struct Snapshot  snapshot    () const { return mSnapshot; }
-    const  AudioClip *pAudioClip ()       { return &mAudioClip; }
+    struct Snapshot  snapshot     () const { return mSnapshot; }
+    const  AudioClip *pAudioClip  ()       { return &mAudioClip; }
     
 private:
     // Member variables
-    AudioClip                      mAudioClip;
     juce::String                   mClipsPath;
-    
-    State                          mState                   { State::Stopped };
     State                          *pState;
-    
     struct Snapshot                mSnapshot                { 0 };
 
     bool                           mMuted                   { false };
     bool                           mSoloed                  { false };
     bool                           mRecordArmed             { false };
 
+    // Fader values
     double                         mVolume                  { 0 };
     double                         mPan                     { 0 };
     
     juce::uint8                    mClipSelected            { 0 };
     juce::uint8                    mLastClipSelected        { 0 };
-    
-    const juce::AudioDeviceManager *pDeviceManager;
-    Recorder                       *pRecorder;
-
     juce::File                     mLastRecording;
     juce::File                     mCurrentClip;
     
+    // Audio stuff
+    const juce::AudioDeviceManager *pDeviceManager;
+    Recorder                       *pRecorder;
+    AudioClip                      mAudioClip;
+    
     /** Gui elements */
-    juce::TextButton               mRecordArmButton        { "R" };
-    juce::TextButton               mStopButton             { "S" };
-    juce::TextButton               mMuteButton             { "M" };
+    juce::TextButton               mRecordArmButton         { "R" };
+    juce::TextButton               mStopButton              { "S" };
+    juce::TextButton               mMuteButton              { "M" };
     z_lib::ClipButton              mClipButtons[numClips];
     
-    juce::Slider                   mVolumeSlider           { juce::Slider::SliderStyle::LinearBarVertical,
-                                                            juce::Slider::NoTextBox };
+    juce::Slider                   mVolumeSlider            { juce::Slider::SliderStyle::LinearBarVertical,
+                                                             juce::Slider::NoTextBox };
     juce::Slider                   mPanSlider;
     
     /** Member functions */
@@ -111,12 +106,12 @@ private:
     void mStopPlaying();
     void mStartRecording();
     void mStopRecording();
-    void mLoadClip(juce::uint8 clip);
-    void mClearSelectedClip();
     
     /** Clip functions */
     void mSetSelectedClip(int clipNum);
     int  mGetSelectedClip();
+    void mClearSelectedClip();
+    void mLoadClip(juce::uint8 clip);
     void mRefreshClipStates();
     bool mClipExists(juce::uint8 clipNum);
 
@@ -127,14 +122,6 @@ private:
     void mPrepareToPlayState();
     void mPrepareToRecordState();
     void mPrepareToStopState();
-    
-    /* TODO: Get Rid of **/
-    void play();
-    void stop();
-    void record();
-    void prepareToPlay();
-    void prepareToStop();
-    void prepareToRecord();
     
 };
 } //z_lib

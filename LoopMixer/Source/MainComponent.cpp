@@ -362,21 +362,18 @@ void MainComponent::mStateStopped()
 void MainComponent::mStatePrep2Play()
 {
     mUpdateChannelsState();
-
 }
 
 
 void MainComponent::mStatePrep2Stop()
 {
     mUpdateChannelsState();
-
 }
 
 
 void MainComponent::mStatePrep2Record()
 {
     mUpdateChannelsState();
-
 }
 
 
