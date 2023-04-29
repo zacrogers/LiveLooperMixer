@@ -62,6 +62,7 @@ private:
     // Member variables
     juce::String                   mClipsPath;
     State                          *pState;
+    State                          mPrevState;
     struct Snapshot                mSnapshot                { 0 };
 
     bool                           mMuted                   { false };

@@ -76,13 +76,14 @@ void AudioClip::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFi
 void AudioClip::stop()
 {
     mState = State::Stopped;
+    mSource->setNextReadPosition(mSource->getTotalLength());
     sendChangeMessage();
 }
 
 void AudioClip::start()
 {
     mState = State::Playing;
-    setNextReadPosition(0);
+    restart();
     sendChangeMessage();
 }
 

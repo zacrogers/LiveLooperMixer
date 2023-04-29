@@ -310,7 +310,7 @@ void MainComponent::mHandlePeriodEnded()
         case State::Stopped: break;
     }
     
-    mUpdateChannelsState();
+//    mUpdateChannelsState();
 }
 
 
