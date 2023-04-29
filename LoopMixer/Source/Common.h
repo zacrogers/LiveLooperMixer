@@ -12,10 +12,10 @@
 
 enum class State
 {
-    Playing,
-    Recording,
-    Stopped,
-    PreparingToPlay,
-    PreparingToStop,
-    PreparingToRecord
+    Playing, //0
+    Recording, //1
+    Stopped, // 2
+    PreparingToPlay, //3
+    PreparingToStop, // 4
+    PreparingToRecord // 5
 };

@@ -67,7 +67,7 @@ void AudioThru::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFi
 //            }
             
             for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                outBuffer[sample] = inBuffer[sample] * mTrimValue;
+                outBuffer[sample] = (inBuffer[sample] * mTrimValue);
         }
         
         else
@@ -86,7 +86,7 @@ void AudioThru::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFi
                 
                 for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
                 {
-                    outBuffer[sample] = inBuffer[sample] * mTrimValue;
+                    outBuffer[sample] = (inBuffer[sample] * mTrimValue);
                 }
             }
         }
@@ -108,6 +108,8 @@ void AudioThru::setTrim(float value)
     {
         mTrimValue = value;
     }
+    
+    DBG("TRIM:"<< mTrimValue);
 }
 
 void AudioThru::setPan(float value)

@@ -93,37 +93,37 @@ private:
     juce::Slider                   mPanSlider;
     
     /** Member functions */
-    void mInitGuiElements();
-    void mUpdateState(State state);
-    juce::String mClipPath(juce::uint8 clip) const { return mClipsPath + "clip_" + juce::String(clip) + ".wav"; }
+    void         mInitGuiElements        ();
+    void         mUpdateState            (State state);
+    juce::String mClipPath               (juce::uint8 clip) const { return mClipsPath + "clip_" + juce::String(clip) + ".wav"; }
     
     /** Button click handlers */
-    void mRecordArmButtonClicked();
-    void mStopButtonClicked();
-    void mMuteButtonClicked();
-    void mClipClicked(juce::uint8 clipNum);
+    void         mRecordArmButtonClicked ();
+    void         mStopButtonClicked      ();
+    void         mMuteButtonClicked      ();
+    void         mClipClicked            (juce::uint8 clipNum);
     
     /** Actions */
-    void mStartPlaying(juce::uint8 clipNum);
-    void mStopPlaying();
-    void mStartRecording();
-    void mStopRecording();
+    void         mStartPlaying           (juce::uint8 clipNum);
+    void         mStopPlaying            ();
+    void         mStartRecording         ();
+    void         mStopRecording          ();
     
     /** Clip functions */
-    void mSetSelectedClip(int clipNum);
-    int  mGetSelectedClip();
-    void mClearSelectedClip();
-    void mLoadClip(juce::uint8 clip);
-    void mRefreshClipStates();
-    bool mClipExists(juce::uint8 clipNum);
+    void         mSetSelectedClip        (int clipNum);
+    int          mGetSelectedClip        ();
+    void         mClearSelectedClip      ();
+    void         mLoadClip               (juce::uint8 clip);
+    void         mRefreshClipStates      ();
+    bool         mClipExists             (juce::uint8 clipNum);
 
     /** State  handlers */
-    void mPlayingState();
-    void mRecordingState();
-    void mStoppedState();
-    void mPrepareToPlayState();
-    void mPrepareToRecordState();
-    void mPrepareToStopState();
+    void         mPlayingState           ();
+    void         mRecordingState         ();
+    void         mStoppedState           ();
+    void         mPrepareToPlayState     ();
+    void         mPrepareToRecordState   ();
+    void         mPrepareToStopState     ();
     
 };
 } //z_lib

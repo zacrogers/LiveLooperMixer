@@ -14,6 +14,7 @@ namespace z_lib
 
 AudioClip::AudioClip(): mGain(0.5), mFileLoaded(false)
 {
+    mFormatManager.registerBasicFormats();
 }
 
 AudioClip::~AudioClip() {}
@@ -63,7 +64,13 @@ void AudioClip::releaseResources()
 
 void AudioClip::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    
+    if (mSource.get() == nullptr)
+    {
+        bufferToFill.clearActiveBufferRegion();
+        return;
+    }
+
+    mSource->getNextAudioBlock (bufferToFill);
 }
 
 void AudioClip::stop()
@@ -75,6 +82,7 @@ void AudioClip::stop()
 void AudioClip::start()
 {
     mState = State::Playing;
+    setNextReadPosition(0);
     sendChangeMessage();
 }
 

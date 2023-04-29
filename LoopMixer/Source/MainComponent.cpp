@@ -140,7 +140,7 @@ void MainComponent::resized()
 *********************************************************/
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-    DBG("Change listener");
+//    DBG("Change listener");
     for(juce::uint8 chan = 0; chan < numChannels; ++chan)
     {
         if(source == &mChannelStrips[chan])
@@ -211,7 +211,7 @@ void MainComponent::mInitGuiElements()
     addAndMakeVisible(&mInputTrimSlider);
     mInputTrimSlider.setRange(0, 1);
     mInputTrimSlider.setValue(0.0);
-    mInputTrimSlider.onValueChange = [this] () { mAudioThru.setTrim(mInputTrimSlider.getValue()); };
+    mInputTrimSlider.onValueChange = [this] () { mAudioThru.setTrim(mInputTrimSlider.getValue());};
     
     addAndMakeVisible(&mMasterVolSlider);
     mMasterVolSlider.setRange(0, 1);
@@ -377,6 +377,13 @@ void MainComponent::mStateStopped()
     mMetronome.resetStep();
     mMetronome.stop();
     
+    for(juce::uint8 chan = 0; chan < numChannels; ++chan)
+    {
+        if(mChannelStrips[chan].isArmed())
+        {
+            mChannelStrips[chan].setArmed(true);
+        }
+    }
     mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
     mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
     
@@ -397,6 +404,8 @@ void MainComponent::mStatePrepareToPlay()
     mPlayButton.setEnabled(false);
     mArmRecordButton.setEnabled(false);
     mStopButton.setEnabled(true);
+    
+    mChangeState(State::Playing);
 }
 
 
@@ -423,6 +432,8 @@ void MainComponent::mStatePrepareToRecord()
     mPlayButton.setEnabled(false);
     mArmRecordButton.setEnabled(false);
     mStopButton.setEnabled(true);
+    
+    mChangeState(State::Recording);
 }
 
 
@@ -431,9 +442,12 @@ void MainComponent::mStatePrepareToRecord()
 ************************************************/
 void MainComponent::mPlayButtonClicked()
 {
-    if(State::Recording         == mState ||
-       State::Stopped           == mState ||
-       State::PreparingToRecord == mState)
+    if(mRecordArmed)
+    {
+        mChangeState(State::PreparingToRecord);
+    }
+    else if(State::Recording == mState ||
+            State::Stopped   == mState)
     {
         mChangeState(State::PreparingToPlay);
     }
@@ -450,9 +464,9 @@ void MainComponent::mStopButtonClicked()
     {
         mChangeState(State::PreparingToStop);
     }
-    else if(State::PreparingToPlay   == mState ||
-           State::PreparingToStop   == mState ||
-           State::PreparingToRecord == mState)
+    else if(State::PreparingToPlay    == mState ||
+            State::PreparingToStop    == mState ||
+            State::PreparingToRecord  == mState)
     {
         mChangeState(State::Stopped);
     }
@@ -476,12 +490,12 @@ void MainComponent::mRecordButtonClicked()
         if (mRecordArmed)
         {
             mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
-            mArmRecordButton.setColour(juce::ComboBox::outlineColourId, juce::Colours::red);
+            mArmRecordButton.setColour(juce::ComboBox::outlineColourId,  juce::Colours::red);
         }
         else
         {
             mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
-            mArmRecordButton.setColour(juce::ComboBox::outlineColourId, juce::Colours::darkred);
+            mArmRecordButton.setColour(juce::ComboBox::outlineColourId,  juce::Colours::darkred);
         }
 
     }
@@ -510,7 +524,7 @@ void MainComponent::mMuteButtonClicked()
 *******************************************/
 void MainComponent::mInputTrimChanged()
 {
-    
+    mAudioThru.setTrim(mInputTrimSlider.getValue());
 }
 
 
