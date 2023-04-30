@@ -306,11 +306,11 @@ void MainComponent::mHandlePeriodEnded()
         case State::PreparingToPlay:   mChangeState(State::Playing);   break;
         case State::PreparingToStop:   mChangeState(State::Stopped);   break;
         case State::PreparingToRecord: mChangeState(State::Recording); break;
-        case State::Playing: break;
+        case State::Playing:           mChangeState(State::Playing);   break;;
         case State::Stopped: break;
     }
     
-//    mUpdateChannelsState();
+    mUpdateChannelsState();
 }
 
 

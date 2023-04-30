@@ -303,6 +303,8 @@ void ChannelStrip::mClipClicked(juce::uint8 clipNum)
 {
     if(clipNum == mClipSelected) return;
     
+    mClipChanged = true;
+    
     DBG("Clip pressed: " << juce::String(clipNum));
 
     mClearSelectedClip();
@@ -321,7 +323,7 @@ void ChannelStrip::mClipClicked(juce::uint8 clipNum)
         }
     }
 
-    if(State::Playing == *pState && mRecordArmed && mClipExists(mClipSelected))
+    if(State::Playing == *pState)
     {
     }
     else if(State::Stopped == *pState)
@@ -346,6 +348,12 @@ void ChannelStrip::mStartPlaying(juce::uint8 clipNum)
 {
     if(State::Playing == *pState)
     {
+        if((mClipSelected != mLastClipSelected))
+        {
+            DBG("SHOUD UPDATE");
+            mLoadClip(clipNum);
+        }
+        
         if(!mAudioClip.isLoaded() || (clipNum != mLastClipSelected))
         {
             mLoadClip(clipNum);
@@ -415,6 +423,9 @@ void ChannelStrip::mStopRecording()
 
 void ChannelStrip::mSetSelectedClip(int clipNum)
 {
+    if(mClipSelected == clipNum) {
+        return;
+    }
     mLastClipSelected = mClipSelected;
     mClipSelected = clipNum;
     
@@ -431,10 +442,10 @@ void ChannelStrip::mSetSelectedClip(int clipNum)
             }
             break;
         }
-        case State::Playing:           mClipButtons[clipNum].setState(ClipButton::State::Playing);
-        case State::Recording:         mClipButtons[clipNum].setState(ClipButton::State::Recording);
-        case State::PreparingToRecord: mClipButtons[clipNum].setState(ClipButton::State::PreparingToRecord);
-        case State::PreparingToStop:   mClipButtons[clipNum].setState(ClipButton::State::PreparingToStop);
+//        case State::Playing:           mClipButtons[clipNum].setState(ClipButton::State::Playing);
+//        case State::Recording:         mClipButtons[clipNum].setState(ClipButton::State::Recording);
+//        case State::PreparingToRecord: mClipButtons[clipNum].setState(ClipButton::State::PreparingToRecord);
+//        case State::PreparingToStop:   mClipButtons[clipNum].setState(ClipButton::State::PreparingToStop);
             
         default: break;
     }

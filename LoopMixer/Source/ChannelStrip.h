@@ -68,7 +68,7 @@ private:
     bool                           mMuted                   { false };
     bool                           mSoloed                  { false };
     bool                           mRecordArmed             { false };
-
+    bool                           mClipChanged { false };
     // Fader values
     double                         mVolume                  { 0 };
     double                         mPan                     { 0 };
