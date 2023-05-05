@@ -14,7 +14,8 @@
 namespace z_lib
 {
 
-class Recorder : public juce::AudioIODeviceCallback {
+class Recorder : public juce::AudioIODeviceCallback
+{
     
 public:
     Recorder();

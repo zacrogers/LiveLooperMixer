@@ -51,7 +51,7 @@ void AudioThru::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFi
         
         else if (maxInputChannels == 1) // Mono to stereo
         {
-            auto* inBuffer = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);
+            auto* inBuffer = bufferToFill.buffer->getReadPointer (0, bufferToFill.startSample);         
             auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
             
 
@@ -67,7 +67,7 @@ void AudioThru::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFi
 //            }
             
             for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                outBuffer[sample] = inBuffer[sample] * mTrimValue;
+                outBuffer[sample] = (inBuffer[sample] * mTrimValue);
         }
         
         else
@@ -80,13 +80,14 @@ void AudioThru::getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFi
             }
             else // [3]
             {
-                auto* inBuffer = bufferToFill.buffer->getReadPointer (actualInputChannel,
-                                                                      bufferToFill.startSample);
+                auto* inBuffer = bufferToFill.buffer->getReadPointer (actualInputChannel, bufferToFill.startSample);
                 auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
 
                 
                 for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                    outBuffer[sample] = inBuffer[sample] * mTrimValue;
+                {
+                    outBuffer[sample] = (inBuffer[sample] * mTrimValue);
+                }
             }
         }
     }
@@ -107,6 +108,8 @@ void AudioThru::setTrim(float value)
     {
         mTrimValue = value;
     }
+    
+    DBG("TRIM:"<< mTrimValue);
 }
 
 void AudioThru::setPan(float value)
