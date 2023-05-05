@@ -71,6 +71,12 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+    if (bufferToFill.buffer == nullptr)
+    {
+        return;
+    }
+    
+    
     mMixer.getNextAudioBlock(bufferToFill);
 }
 
@@ -306,17 +312,31 @@ void MainComponent::mHandlePeriodEnded()
         case State::PreparingToPlay:   mChangeState(State::Playing);   break;
         case State::PreparingToStop:   mChangeState(State::Stopped);   break;
         case State::PreparingToRecord: mChangeState(State::Recording); break;
-        case State::Playing:           mChangeState(State::Playing);   break;;
+        case State::Playing:           mChangeState(State::Playing);   break;
         case State::Stopped: break;
     }
-    
-    mUpdateChannelsState();
 }
 
 
 juce::String MainComponent::mChannelPath(juce::uint8 channel) const
 {
     return mProjectsPath + "/default_project" + "/channel_" + juce::String(channel) + "/";
+}
+
+
+juce::uint8 MainComponent::mGetNumArmed()
+{
+    juce::uint8 nArmed = 0;
+    
+    for (juce::uint8 chan = 0; chan < numChannels; ++chan)
+    {
+        if(mChannelStrips[chan].isArmed())
+        {
+            nArmed++;
+        }
+    }
+    
+    return nArmed;
 }
 
 
@@ -344,6 +364,13 @@ void MainComponent::mStatePlaying()
 
 void MainComponent::mStateRecording()
 {
+    // If theres no channels armed, we don't really want to record, do we?
+    if (mGetNumArmed() == 0)
+    {
+        mChangeState(State::Playing);
+        return;
+    }
+    
     if (mMetronome.isEnabled())
     {
         mTimerFirstFire = true;

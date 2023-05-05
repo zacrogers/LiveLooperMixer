@@ -151,6 +151,7 @@ void ChannelStrip::mInitGuiElements()
     {
         mVolume = mVolumeSlider.getValue();
         mAudioClip.setGain(mVolume);
+        
     };
     
     setSize(10, 600);
@@ -346,25 +347,16 @@ void ChannelStrip::mClipClicked(juce::uint8 clipNum)
 
 void ChannelStrip::mStartPlaying(juce::uint8 clipNum)
 {
-    if(State::Playing == *pState)
+    if(!mAudioClip.isLoaded() || (mClipSelected != mLastClipSelected))
     {
-        if((mClipSelected != mLastClipSelected))
-        {
-            DBG("SHOUD UPDATE");
-            mLoadClip(clipNum);
-        }
+        mLoadClip(clipNum);
         
-        if(!mAudioClip.isLoaded() || (clipNum != mLastClipSelected))
-        {
-            mLoadClip(clipNum);
-            
-        }
-        if(mAudioClip.isLoaded())
-        {
-            mAudioClip.start();
-        }
-        sendChangeMessage();
     }
+    if(mAudioClip.isLoaded())
+    {
+        mAudioClip.start();
+    }
+    sendChangeMessage();
 }
 
 
@@ -531,11 +523,17 @@ void ChannelStrip::mPlayingState()
 
 void ChannelStrip::mRecordingState()
 {
-    if(*pState == State::Recording && mRecordArmed)
+    if(mRecordArmed)
     {
+        DBG("Armed and playing");
         mStartRecording();
         mStopButton.setEnabled(true);
         mRecordArmButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+    }
+    else
+    {
+        DBG("unarmed, should be playing");
+        mPlayingState();
     }
 }
 

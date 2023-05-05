@@ -17,7 +17,9 @@ AudioClip::AudioClip(): mGain(0.5), mFileLoaded(false)
     mFormatManager.registerBasicFormats();
 }
 
+
 AudioClip::~AudioClip() {}
+
 
 void AudioClip::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
@@ -42,25 +44,30 @@ void AudioClip::setNextReadPosition(juce::int64 newPosition)
     mSource->setNextReadPosition(newPosition);
 }
 
+
 juce::int64 AudioClip::getNextReadPosition() const
 {
     return mSource->getNextReadPosition();
 }
+
 
 juce::int64 AudioClip::getTotalLength() const
 {
     return mSource->getTotalLength();
 }
 
+
 bool AudioClip::isLooping() const
 {
     return mSource->isLooping();
 }
 
+
 void AudioClip::releaseResources()
 {
     if (mSource) mSource->releaseResources();
 }
+
 
 void AudioClip::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
@@ -73,12 +80,14 @@ void AudioClip::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFi
     mSource->getNextAudioBlock (bufferToFill);
 }
 
+
 void AudioClip::stop()
 {
     mState = State::Stopped;
     mSource->setNextReadPosition(mSource->getTotalLength());
     sendChangeMessage();
 }
+
 
 void AudioClip::start()
 {
@@ -87,10 +96,12 @@ void AudioClip::start()
     sendChangeMessage();
 }
 
+
 void AudioClip::restart()
 {
     mSource->setNextReadPosition(0);
 }
+
 
 void AudioClip::load(juce::File file)
 {

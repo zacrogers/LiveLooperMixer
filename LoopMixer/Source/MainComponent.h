@@ -104,6 +104,7 @@ private:
     bool         mPeriodEnded          ();
     void         mHandlePeriodEnded    ();
     juce::String mChannelPath          (juce::uint8 channel) const;
+    juce::uint8  mGetNumArmed          ();
     
     /** States : These implement all of the the state functionality **/
     void        mStatePlaying          ();

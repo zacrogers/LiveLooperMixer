@@ -18,6 +18,7 @@ namespace z_lib
 constexpr int numClips = 4;
 
 
+
 class ChannelStrip : public juce::Component,
                      public juce::ChangeBroadcaster,
                      public juce::ChangeListener
