@@ -75,9 +75,21 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
     {
         return;
     }
-    
-    
     mMixer.getNextAudioBlock(bufferToFill);
+    
+    /** Set  master gain */
+    auto level = (float) mMasterVolSlider.getValue();
+    
+    for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
+    {
+        auto* inBuffer = bufferToFill.buffer->getReadPointer (channel, bufferToFill.startSample);
+        auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
+        
+        for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
+        {
+            outBuffer[sample] = inBuffer[sample] * level;
+        }
+    }
 }
 
 
@@ -295,7 +307,7 @@ bool MainComponent::mPeriodEnded()
     bool ended { false };
     
     if((mMetronome.previousBeat() == mMetronome.finalBeat()) &&
-       (mMetronome.currentBeat() == mMetronome.startBeat()))
+       (mMetronome.currentBeat()  == mMetronome.startBeat()))
     {
         ended = true;
     }

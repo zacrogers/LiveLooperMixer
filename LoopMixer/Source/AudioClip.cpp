@@ -78,6 +78,19 @@ void AudioClip::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFi
     }
 
     mSource->getNextAudioBlock (bufferToFill);
+    
+    float level = mMuted ? 0.0 : mGain;
+    
+    for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
+    {
+        auto* inBuffer  = bufferToFill.buffer->getReadPointer (channel, bufferToFill.startSample);
+        auto* outBuffer = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
+        
+        for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
+        {
+            outBuffer[sample] = inBuffer[sample] * level;
+        }
+    }
 }
 
 

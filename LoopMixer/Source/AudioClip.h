@@ -49,6 +49,7 @@ public:
     void        load                (juce::File file);
     void        restart             ();
     void        setGain             (float gain);
+    void        setMuted            (bool muted) { mMuted = muted; }
     void        setSource           (std::unique_ptr<PositionableAudioSource>& newSource);
     bool        isPlaying           ();
     bool        isLoaded            () const { return mFileLoaded; }
@@ -59,6 +60,7 @@ private:
     float                                    mGain;
     State                                    mState;
     bool                                     mFileLoaded;
+    bool                                     mMuted;
 };
 
 }
