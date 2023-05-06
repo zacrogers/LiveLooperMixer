@@ -290,6 +290,8 @@ void ChannelStrip::mMuteButtonClicked()
 {
     mMuted =! mMuted;
     
+    mAudioClip.setMuted(mMuted);
+    
     if (mMuted)
     {
         mMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
@@ -298,6 +300,7 @@ void ChannelStrip::mMuteButtonClicked()
     {
         mMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgreen);
     }
+    mRefreshClipStates();
     sendChangeMessage();
 }
 
