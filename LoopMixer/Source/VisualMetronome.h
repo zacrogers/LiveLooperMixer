@@ -48,7 +48,7 @@ public:
     int  numBars                 () const                   { return mNumBars; }
     
     
-    double getIntervalMs         ()                         { return mBpmToMs(mBpm); }
+    double getIntervalMs         ()                         { return bpmToMs(mBpm); }
     
     /* Component functions */
     void paint                   (juce::Graphics& g) override;
@@ -103,9 +103,9 @@ private:
     juce::Label       mNumBarsLabel;
     
     /* Functions */
-    void mToggleEnabled();
-    void mToggleCountIn();
-    int mBpmToMs(float bpm) { return 60000 / bpm; };
+    void toggleEnabled();
+    void toggleCountIn();
+    int bpmToMs(float bpm) { return 60000 / bpm; };
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VisualMetronome)
 };

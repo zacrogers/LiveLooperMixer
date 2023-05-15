@@ -20,11 +20,11 @@ VisualMetronome::VisualMetronome(bool externallyTriggered, Orientation orientati
     /** Buttons */
     addAndMakeVisible(&mEnabledButton);
     mEnabledButton.setColour(juce::TextButton::buttonColourId, mNotEnabledColour);
-    mEnabledButton.onClick = [this]() { mToggleEnabled(); };
+    mEnabledButton.onClick = [this]() { toggleEnabled(); };
     
     addAndMakeVisible(&mCountInButton);
     mCountInButton.setColour(juce::TextButton::buttonColourId, mNotEnabledColour);
-    mCountInButton.onClick = [this]() { mToggleCountIn(); };
+    mCountInButton.onClick = [this]() { toggleCountIn(); };
     
     /** Sliders */
     addAndMakeVisible(&mBpmSlider);
@@ -229,7 +229,7 @@ void VisualMetronome::timerCallback()
 }
 
 
-void VisualMetronome::mToggleEnabled()
+void VisualMetronome::toggleEnabled()
 {
     mEnabled = !mEnabled;
     
@@ -251,7 +251,7 @@ void VisualMetronome::mToggleEnabled()
 }
 
 
-void VisualMetronome::mToggleCountIn()
+void VisualMetronome::toggleCountIn()
 {
     mCountInEnabled = !mCountInEnabled;
     mCountingIn = !mCountingIn;

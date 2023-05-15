@@ -98,32 +98,32 @@ private:
     VisualMetronome          mMetronome { true };
     
     /** Member Functions */
-    void         mInitGuiElements      ();
-    void         mUpdateChannelsState  ();
-    void         mChangeState          (State newState);
-    bool         mPeriodEnded          ();
-    void         mHandlePeriodEnded    ();
-    juce::String mChannelPath          (juce::uint8 channel) const;
-    juce::uint8  mGetNumArmed          ();
+    void         initGuiElements      ();
+    void         updateChannelsState  ();
+    void         changeState          (State newState);
+    bool         periodEnded          ();
+    void         handlePeriodEnded    ();
+    juce::String channelPath          (juce::uint8 channel) const;
+    juce::uint8  getNumArmed          ();
     
     /** States : These implement all of the the state functionality **/
-    void        mStatePlaying          ();
-    void        mStateRecording        ();
-    void        mStateStopped          ();
-    void        mStatePrepareToPlay    ();
-    void        mStatePrepareToStop    ();
-    void        mStatePrepareToRecord  ();
+    void         statePlaying         ();
+    void         stateRecording       ();
+    void         stateStopped         ();
+    void         statePrepareToPlay   ();
+    void         statePrepareToStop   ();
+    void         statePrepareToRecord ();
 
     /** Button callbacks : Change state based on current state */
-    void         mPlayButtonClicked    ();
-    void         mStopButtonClicked    ();
-    void         mRecordButtonClicked  ();
-    void         mMuteButtonClicked    ();
+    void         playButtonClicked    ();
+    void         stopButtonClicked    ();
+    void         recordButtonClicked  ();
+    void         muteButtonClicked    ();
     
     // Slider Callbacks
-    void         mInputTrimChanged     ();
-    void         mMasterVolChanged     ();
-    void         volumeChanged         (int channel);
+    void         inputTrimChanged     ();
+    void         masterVolChanged     ();
+    void         volumeChanged        (int channel);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

@@ -34,8 +34,8 @@ public:
     ClipButton()  {}
     ~ClipButton() {}
     
-    void setState    (State state)   { mState = state;       mSetColour(); }
-    void setSelected (bool selected) { mSelected = selected; mSetColour(); }
+    void setState    (State state)   { mState = state;       _setColour(); }
+    void setSelected (bool selected) { mSelected = selected; _setColour(); }
     bool isSelected  () const        { return mSelected; }
 
     
@@ -54,8 +54,8 @@ private:
         juce::Colours::cyan       // Preparing to stop
     };
     
-    juce::Colour mGetStateColour(State state) const { return mStateColours[static_cast<int>(state)]; }
-    void         mSetColour() { setColour(juce::TextButton::buttonColourId, mGetStateColour(mState)); };
+    juce::Colour getStateColour(State state) const { return mStateColours[static_cast<int>(state)]; }
+    void         _setColour() { setColour(juce::TextButton::buttonColourId, getStateColour(mState)); };
 };
 
 }

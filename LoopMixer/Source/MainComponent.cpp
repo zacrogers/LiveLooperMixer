@@ -31,13 +31,13 @@ MainComponent::MainComponent()
     
     for (juce::uint8 channel = 0; channel < numChannels; ++channel)
     {
-        mChannelStrips[channel].init(&mAudioDeviceManager, &mRecorder, &mState, mChannelPath(channel));
+        mChannelStrips[channel].init(&mAudioDeviceManager, &mRecorder, &mState, channelPath(channel));
         mChannelStrips[channel].addChangeListener(this);
-        mChannelStrips[channel].updateClipsPath(mChannelPath(channel));
+        mChannelStrips[channel].updateClipsPath(channelPath(channel));
         mMixer.addInputSource((juce::PositionableAudioSource*)mChannelStrips[channel].pAudioClip(), true);
     }
     
-	mInitGuiElements();
+	initGuiElements();
 
 	formatManager.registerBasicFormats();
 //	mMixer.addInputSource(&transportSource[0], true);
@@ -183,46 +183,47 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 ***************************************************/
 void MainComponent::timerCallback()
 {
-    mMetronome.advance();
     
     if(mTimerFirstFire)
     {
         DBG("Timer: First fire");
-        mUpdateChannelsState();
+        updateChannelsState();
         mTimerFirstFire = false;
     }
     
-    if (mPeriodEnded())
+    if (periodEnded())
     {
         DBG("Timer: Period ended");
-        mHandlePeriodEnded();
-        mUpdateChannelsState();
+        handlePeriodEnded();
+        updateChannelsState();
     }
+    
+    mMetronome.advance();
 }
 
 
 /********************************
 ========== Member Functions ==========
 *****************************************************/
-void MainComponent::mInitGuiElements()
+void MainComponent::initGuiElements()
 {
     /** Buttons */
     addAndMakeVisible(&mPlayButton);
     mPlayButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-    mPlayButton.onClick = [this] () { mPlayButtonClicked(); };
+    mPlayButton.onClick = [this] () { playButtonClicked(); };
     
     addAndMakeVisible(&mStopButton);
     mStopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
     mStopButton.setEnabled(false);
-    mStopButton.onClick = [this] () { mStopButtonClicked(); };
+    mStopButton.onClick = [this] () { stopButtonClicked(); };
     
     addAndMakeVisible(&mArmRecordButton);
     mArmRecordButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
-    mArmRecordButton.onClick = [this] () { mRecordButtonClicked(); };
+    mArmRecordButton.onClick = [this] () { recordButtonClicked(); };
     
     addAndMakeVisible(&mInputMuteButton);
     mInputMuteButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkslateblue);
-    mInputMuteButton.onClick = [this](){ mMuteButtonClicked(); };
+    mInputMuteButton.onClick = [this](){ muteButtonClicked(); };
 
     
     /** Sliders */
@@ -262,7 +263,7 @@ void MainComponent::mInitGuiElements()
 }
 
 
-void MainComponent::mUpdateChannelsState()
+void MainComponent::updateChannelsState()
 {
     for(juce::uint8 chan = 0; chan < numChannels; ++chan)
     {
@@ -271,7 +272,7 @@ void MainComponent::mUpdateChannelsState()
 }
 
 
-void MainComponent::mChangeState(State newState)
+void MainComponent::changeState(State newState)
 {
     if (mState != newState)
     {
@@ -280,29 +281,29 @@ void MainComponent::mChangeState(State newState)
         switch (mState)
         {
             case State::Playing:
-                mStatePlaying();
+                statePlaying();
                 break;
             case State::Recording:
-                mStateRecording();
+                stateRecording();
                 break;
             case State::Stopped:
-                mStateStopped();
+                stateStopped();
                 break;
             case State::PreparingToPlay:
-                mStatePrepareToPlay();
+                statePrepareToPlay();
                 break;
             case State::PreparingToStop:
-                mStatePrepareToStop();
+                statePrepareToStop();
                 break;
             case State::PreparingToRecord:
-                mStatePrepareToRecord();
+                statePrepareToRecord();
                 break;
         }
     }
 }
 
 
-bool MainComponent::mPeriodEnded()
+bool MainComponent::periodEnded()
 {
     bool ended { false };
     
@@ -316,27 +317,27 @@ bool MainComponent::mPeriodEnded()
 }
 
 
-void MainComponent::mHandlePeriodEnded()
+void MainComponent::handlePeriodEnded()
 {
     switch (mState)
     {
-        case State::Recording:         mChangeState(State::Playing);   break;
-        case State::PreparingToPlay:   mChangeState(State::Playing);   break;
-        case State::PreparingToStop:   mChangeState(State::Stopped);   break;
-        case State::PreparingToRecord: mChangeState(State::Recording); break;
-        case State::Playing:           mChangeState(State::Playing);   break;
+        case State::Recording:         changeState(State::Playing);   break;
+        case State::PreparingToPlay:   changeState(State::Playing);   break;
+        case State::PreparingToStop:   changeState(State::Stopped);   break;
+        case State::PreparingToRecord: changeState(State::Recording); break;
+        case State::Playing:           changeState(State::Playing);   break;
         case State::Stopped: break;
     }
 }
 
 
-juce::String MainComponent::mChannelPath(juce::uint8 channel) const
+juce::String MainComponent::channelPath(juce::uint8 channel) const
 {
     return mProjectsPath + "/default_project" + "/channel_" + juce::String(channel) + "/";
 }
 
 
-juce::uint8 MainComponent::mGetNumArmed()
+juce::uint8 MainComponent::getNumArmed()
 {
     juce::uint8 nArmed = 0;
     
@@ -355,7 +356,7 @@ juce::uint8 MainComponent::mGetNumArmed()
 /*********************************
 ============ State Functions ===========
 *****************************************************/
-void MainComponent::mStatePlaying()
+void MainComponent::statePlaying()
 {
     if (mMetronome.isEnabled())
     {
@@ -374,12 +375,12 @@ void MainComponent::mStatePlaying()
 }
 
 
-void MainComponent::mStateRecording()
+void MainComponent::stateRecording()
 {
     // If theres no channels armed, we don't really want to record, do we?
-    if (mGetNumArmed() == 0)
+    if (getNumArmed() == 0)
     {
-        mChangeState(State::Playing);
+        changeState(State::Playing);
         return;
     }
     
@@ -400,10 +401,10 @@ void MainComponent::mStateRecording()
 }
 
 
-void MainComponent::mStateStopped()
+void MainComponent::stateStopped()
 {
     stopTimer();
-    mUpdateChannelsState();
+    updateChannelsState();
     
     if ((mRecordArmed && mRecorder.isRecording()))
     {
@@ -432,9 +433,9 @@ void MainComponent::mStateStopped()
 }
 
 
-void MainComponent::mStatePrepareToPlay()
+void MainComponent::statePrepareToPlay()
 {
-    mUpdateChannelsState();
+    updateChannelsState();
     
     mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::orange);
     mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
@@ -444,13 +445,13 @@ void MainComponent::mStatePrepareToPlay()
     mArmRecordButton.setEnabled(false);
     mStopButton.setEnabled(true);
     
-    mChangeState(State::Playing);
+    changeState(State::Playing);
 }
 
 
-void MainComponent::mStatePrepareToStop()
+void MainComponent::statePrepareToStop()
 {
-    mUpdateChannelsState();
+    updateChannelsState();
     
     mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
     mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::orange);
@@ -461,9 +462,9 @@ void MainComponent::mStatePrepareToStop()
 }
 
 
-void MainComponent::mStatePrepareToRecord()
+void MainComponent::statePrepareToRecord()
 {
-    mUpdateChannelsState();
+    updateChannelsState();
     
     mPlayButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::red);
     mStopButton.getLookAndFeel().setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
@@ -472,55 +473,55 @@ void MainComponent::mStatePrepareToRecord()
     mArmRecordButton.setEnabled(false);
     mStopButton.setEnabled(true);
     
-    mChangeState(State::Recording);
+    changeState(State::Recording);
 }
 
 
 /*******************************
 ************* * Button Callbacks *************
 ************************************************/
-void MainComponent::mPlayButtonClicked()
+void MainComponent::playButtonClicked()
 {
     if(mRecordArmed)
     {
-        mChangeState(State::PreparingToRecord);
+        changeState(State::PreparingToRecord);
     }
     else if(State::Recording == mState ||
             State::Stopped   == mState)
     {
-        mChangeState(State::PreparingToPlay);
+        changeState(State::PreparingToPlay);
     }
     else if(State::PreparingToStop == mState)
     {
-        mChangeState(State::Playing);
+        changeState(State::Playing);
     }
 }
 
 
-void MainComponent::mStopButtonClicked()
+void MainComponent::stopButtonClicked()
 {
     if(State::Playing == mState || State::Recording == mState)
     {
-        mChangeState(State::PreparingToStop);
+        changeState(State::PreparingToStop);
     }
     else if(State::PreparingToPlay    == mState ||
             State::PreparingToStop    == mState ||
             State::PreparingToRecord  == mState)
     {
-        mChangeState(State::Stopped);
+        changeState(State::Stopped);
     }
 }
 
 
-void MainComponent::mRecordButtonClicked()
+void MainComponent::recordButtonClicked()
 {
     if(State::Recording == mState)
     {
-        mChangeState(State::PreparingToPlay);
+        changeState(State::PreparingToPlay);
     }
     else if(State::PreparingToPlay == mState)
     {
-        mChangeState(State::PreparingToRecord);
+        changeState(State::PreparingToRecord);
     }
     else if(State::Stopped == mState)
     {
@@ -542,7 +543,7 @@ void MainComponent::mRecordButtonClicked()
 }
 
 
-void MainComponent::mMuteButtonClicked()
+void MainComponent::muteButtonClicked()
 {
     mInputMuted = !mInputMuted;
     
@@ -561,13 +562,13 @@ void MainComponent::mMuteButtonClicked()
 /***************************
 ======== Slider Callbacks ========
 *******************************************/
-void MainComponent::mInputTrimChanged()
+void MainComponent::inputTrimChanged()
 {
     mAudioThru.setTrim(mInputTrimSlider.getValue());
 }
 
 
-void MainComponent::mMasterVolChanged()
+void MainComponent::masterVolChanged()
 {
     
 }
